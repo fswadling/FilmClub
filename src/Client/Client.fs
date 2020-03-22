@@ -64,32 +64,12 @@ let stream model msgs =
     | _ -> msgs
 
 let safeComponents =
-    let components =
-        span [ ]
-           [ a [ Href "https://github.com/SAFE-Stack/SAFE-template" ]
-               [ str "SAFE  "
-                 str Version.template ]
-             str ", "
-             a [ Href "https://saturnframework.github.io" ] [ str "Saturn" ]
-             str ", "
-             a [ Href "http://fable.io" ] [ str "Fable" ]
-             str ", "
-             a [ Href "https://elmish.github.io" ] [ str "Elmish" ]
-             str ", "
-             a [ Href "https://fulma.github.io/Fulma" ] [ str "Fulma" ]
-             str ", "
-             a [ Href "http://elmish-streams.rtfd.io/" ] [ str "Elmish.Streams" ]
-             str ", "
-             a [ Href "https://zaid-ajaj.github.io/Fable.Remoting/" ] [ str "Fable.Remoting" ]
-
-           ]
-
     span [ ]
         [ str "Version "
           strong [ ] [ str Version.app ]
-          str " powered by: "
-          components ]
-
+          str " powered by SAFE stack"
+        ]
+        
 let show = function
     | { Counter = Some counter } -> string counter.Value
     | { Counter = None   } -> "Loading..."
@@ -103,17 +83,10 @@ let button txt onClick =
 
 let view (model : Model) (dispatch : Msg -> unit) =
     div []
-        [ Navbar.navbar [ Navbar.Color IsPrimary ]
+        [ Navbar.navbar [ Navbar.Color IsBlack ]
             [ Navbar.Item.div [ ]
-                [ Heading.h2 [ ]
-                    [ str "SAFE Template" ] ] ]
-
-          Container.container []
-              [ Content.content [ Content.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
-                    [ Heading.h3 [] [ str ("Press buttons to manipulate counter: " + show model) ] ]
-                Columns.columns []
-                    [ Column.column [] [ button "-" (fun _ -> dispatch Decrement) ]
-                      Column.column [] [ button "+" (fun _ -> dispatch Increment) ] ] ]
+                [ Heading.h2 [ Heading.Modifiers [ Modifier.TextColor IsWhite ] ]
+                    [ str "Film Club" ] ] ]
 
           Footer.footer [ ]
                 [ Content.content [ Content.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
