@@ -21,14 +21,18 @@ let port =
     "SERVER_PORT"
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
-let counterApi = {
-    initialCounter = fun () -> async { return { Value = 42 } }
+let filmApi: IFilmsApi = {
+   getFilms = fun () -> async { return [
+    { Name = "The Thing"};
+    { Name = "Your Name"}
+   ]
+   }
 }
 
 let webApp =
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue counterApi
+    |> Remoting.fromValue filmApi
     |> Remoting.buildHttpHandler
 
 let configureAzure (services:IServiceCollection) =

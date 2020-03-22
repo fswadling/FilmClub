@@ -15,14 +15,13 @@ open Shared
 // in this case, we are keeping track of a counter
 // we mark it as optional, because initially it will not be available from the client
 // the initial value will be requested from server
-type Model = { Counter: Counter option }
+type Model = { Films: Film list option }
 
 // The Msg type defines what events/actions can occur while the application is running
 // the state of the application changes *only* in reaction to these events
 type Msg =
-    | Increment
-    | Decrement
-    | InitialCountLoaded of Counter
+    | InitialFilmsLoaded of Film list
+
 
 module Server =
 
@@ -30,36 +29,33 @@ module Server =
     open Fable.Remoting.Client
 
     /// A proxy you can use to talk to server directly
-    let api : ICounterApi =
+    let api : IFilmsApi =
       Remoting.createApi()
       |> Remoting.withRouteBuilder Route.builder
-      |> Remoting.buildProxy<ICounterApi>
-let initialCounter = Server.api.initialCounter
+      |> Remoting.buildProxy<IFilmsApi>
+
+let getFilms = Server.api.getFilms
 
 // defines the initial state
 let init () : Model =
-    { Counter = None }
+    { Films = None }
+
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (currentModel : Model) : Model =
-    match currentModel.Counter, msg with
-    | Some counter, Increment ->
-        { currentModel with Counter = Some { Value = counter.Value + 1 } }
-    | Some counter, Decrement ->
-        { currentModel with Counter = Some { Value = counter.Value - 1 } }
-    | _, InitialCountLoaded initialCount ->
-        { Counter = Some initialCount }
-    | _ -> currentModel
+    match msg with
+    | InitialFilmsLoaded initialFilms ->
+        { currentModel with Films = Some initialFilms }
 
 
-let load = AsyncRx.ofAsync (initialCounter ())
+let load = AsyncRx.ofAsync (getFilms ())
 
 let loadCount =
     load
-    |> AsyncRx.map InitialCountLoaded
+    |> AsyncRx.map InitialFilmsLoaded
     |> AsyncRx.toStream "loading"
 
 let stream model msgs =
-    match model.Counter with
+    match model.Films with
     | None -> loadCount
     | _ -> msgs
 
@@ -69,10 +65,6 @@ let safeComponents =
           strong [ ] [ str Version.app ]
           str " powered by SAFE stack"
         ]
-        
-let show = function
-    | { Counter = Some counter } -> string counter.Value
-    | { Counter = None   } -> "Loading..."
 
 let button txt onClick =
     Button.button
@@ -91,6 +83,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
           Footer.footer [ ]
                 [ Content.content [ Content.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
                     [ safeComponents ] ] ]
+
 
 #if DEBUG
 open Elmish.Debug
