@@ -21,11 +21,13 @@ let port =
     "SERVER_PORT"
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
-let filmApi: IFilmsApi = {
+let filmApi: IFilmClubApi = {
    getFilms = fun () -> async { return [
-    { Name = "The Thing"};
-    { Name = "Your Name"}
-   ]
+        { Name = "The Thing"};
+        { Name = "Your Name"}
+   ]}
+   getUser = fun () -> async {
+        return { Name = "Fred" }
    }
 }
 
