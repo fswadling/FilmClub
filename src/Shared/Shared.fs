@@ -8,6 +8,10 @@ type User = {
     Name: string
 }
 
+type Club = {
+    Name: string
+}
+
 module Route =
     /// Defines how routes are generated on server and mapped from client
     let builder typeName methodName =
@@ -18,5 +22,6 @@ module Route =
 type IFilmClubApi = {
     getFilms: unit -> Async<Film list>
     getUser: unit -> Async<User>
+    getClubs: User -> Async<Club list>
     }
 

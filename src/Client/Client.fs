@@ -60,10 +60,11 @@ let stream model msgs =
 
 let view (model : Model) (dispatch : Msg -> unit) =
     let navbarFn = FilmClubNavBar.Component Server.api model.User
+    let filmClubHomePageFn = FilmClubHomePage.Component Server.api
     div [] [
         navbarFn ()
         match model.User with
-        | Some user -> div [] [ str user.Name ]
+        | Some user -> filmClubHomePageFn user ()
         | None -> div [] [str "Loading user" ]
     ]
 

@@ -22,7 +22,7 @@ let private stream model msgs =
     msgs
     |> AsyncRx.tag "msgs"
 
-let private renderUserNavbarItems userOption =
+let private renderUserNavbarItems (userOption: User option) =
     match userOption with
         | Some user -> [
             Navbar.End.div [ ] [
