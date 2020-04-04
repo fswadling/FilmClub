@@ -59,9 +59,14 @@ let stream model msgs =
     | _ -> msgs
 
 let view (model : Model) (dispatch : Msg -> unit) =
-    match model.User with
-    | Some user -> div [] [ str user.Name ]
-    | None -> div [] [str "Loading user" ]
+    let navbarFn = FilmClubNavBar.Component Server.api model.User
+    div [] [
+        navbarFn ()
+        match model.User with
+        | Some user -> div [] [ str user.Name ]
+        | None -> div [] [str "Loading user" ]
+    ]
+
 
 #if DEBUG
 open Elmish.Debug
