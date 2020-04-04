@@ -21,6 +21,7 @@ group Client
     nuget Fable.Elmish.HMR ~> 4
     nuget Fable.Elmish.React ~> 3
     nuget Fable.Elmish.Streams ~> 3
+nuget Fable.Reaction
     nuget FSharp.Control.AsyncRx ~> 1.0.0
     nuget Fable.React ~> 5
     nuget Fable.Remoting.Client ~> 5
@@ -41,4 +42,3 @@ group Build
     nuget Fake.Core.Trace
     nuget Fake.IO.Zip
     github CompositionalIT/fshelpers src/FsHelpers/ArmHelper/ArmHelper.fs
-

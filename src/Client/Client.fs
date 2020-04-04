@@ -16,13 +16,13 @@ open Shared
 // we mark it as optional, because initially it will not be available from the client
 // the initial value will be requested from server
 type Model = {
-   Test: string
+   User: User option
 }
 
 // The Msg type defines what events/actions can occur while the application is running
 // the state of the application changes *only* in reaction to these events
 type Msg =
-    | Test
+    | UserLoaded of User
 
 
 module Server =
@@ -36,19 +36,32 @@ module Server =
       |> Remoting.withRouteBuilder Route.builder
       |> Remoting.buildProxy<IFilmClubApi>
 
+let userObs () =
+    Server.api.getUser ()
+        |> AsyncRx.ofAsync
+        |> AsyncRx.delay 2000
+        |> AsyncRx.map UserLoaded
+        |> AsyncRx.toStream "user"
+
+
 // defines the initial state
 let init () : Model =
-    { Test = "Hello world" }
+    { User = None }
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (currentModel : Model) : Model =
-    currentModel
+    match msg with
+    | UserLoaded user -> { currentModel with User = Some user }
 
 let stream model msgs =
-    msgs
+    match model.User with
+    | None -> userObs ()
+    | _ -> msgs
 
 let view (model : Model) (dispatch : Msg -> unit) =
-    div [] [ str model.Test ]
+    match model.User with
+    | Some user -> div [] [ str user.Name ]
+    | None -> div [] [str "Loading user" ]
 
 #if DEBUG
 open Elmish.Debug
