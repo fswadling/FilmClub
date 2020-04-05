@@ -46,7 +46,7 @@ let private renderClubs clubs =
 
 let private view (model : Model) (dispatch : Msg -> unit) =
     match model.Clubs with
-    | None -> div [] [ str "Loading clubs" ]
+    | None -> Utils.LoadingPage "Loading Clubs"
     | Some clubs -> renderClubs clubs
 
 let Component (api: IFilmClubApi) (user: User) =
