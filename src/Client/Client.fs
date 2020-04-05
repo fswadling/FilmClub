@@ -8,6 +8,8 @@ open Fable.React
 open Fable.React.Props
 open Fulma
 open Thoth.Json
+open FilmClubRouter
+open Elmish.Navigation
 
 open Shared
 
@@ -17,12 +19,22 @@ open Shared
 // the initial value will be requested from server
 type Model = {
    User: User option
+   Route: Route option
 }
 
 // The Msg type defines what events/actions can occur while the application is running
 // the state of the application changes *only* in reaction to these events
 type Msg =
     | UserLoaded of User
+
+let urlUpdate (result:Option<Route>) model : Model * Cmd<Msg> =
+    match result with
+    | Some Home ->
+        { model with Route = Some Home }, Cmd.none
+    | Some (Club id) ->
+        { model with Route = Some (Club id) }, Cmd.none
+    | None ->
+        model, Navigation.modifyUrl "/#home"
 
 
 module Server =
@@ -45,13 +57,14 @@ let userObs () =
 
 
 // defines the initial state
-let init () : Model =
-    { User = None }
+let init route : Model * Cmd<Msg> =
+    { User = None; Route = route }, Navigation.modifyUrl "/#home"
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
-let update (msg : Msg) (currentModel : Model) : Model =
+let update (msg : Msg) (currentModel : Model) : Model * Cmd<Msg> =
     match msg with
-    | UserLoaded user -> { currentModel with User = Some user }
+    | UserLoaded user ->
+        { currentModel with User = Some user }, Cmd.none
 
 let stream model msgs =
     match model.User with
@@ -74,8 +87,9 @@ open Elmish.Debug
 open Elmish.HMR
 #endif
 
-Program.mkSimple init update view
+Program.mkProgram init update view
 |> Program.withStream stream "msgs"
+|> Program.toNavigable FilmClubRouter.urlParser urlUpdate
 #if DEBUG
 |> Program.withConsoleTrace
 #endif
