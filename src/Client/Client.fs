@@ -27,7 +27,7 @@ type Model = {
 type Msg =
     | UserLoaded of User
 
-let urlUpdate (result:Option<Route>) model : Model * Cmd<Msg> =
+let urlUpdate (result: Route option) model : Model * Cmd<Msg> =
     match result with
     | Some Home ->
         { model with Route = Some Home }, Cmd.none
@@ -55,10 +55,11 @@ let userObs () =
         |> AsyncRx.map UserLoaded
         |> AsyncRx.toStream "user"
 
-
 // defines the initial state
 let init route : Model * Cmd<Msg> =
-    { User = None; Route = route }, Navigation.modifyUrl "/#home"
+    match route with
+    | None -> { User = None; Route = Some Home }, (Navigation.modifyUrl "/#home")
+    | Some route -> { User = None; Route = Some route }, Cmd.none
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (currentModel : Model) : Model * Cmd<Msg> =
@@ -71,13 +72,19 @@ let stream model msgs =
     | None -> userObs ()
     | _ -> msgs
 
+let renderRouteTarget (route: Route option) (user: User) =
+    match route with
+    | Some Home -> FilmClubHomePage.Component Server.api user ()
+    | Some (Club c) -> div [] [ Fable.React.Helpers.str "Club" ]
+    | _ -> div [] [ Fable.React.Helpers.str "No route" ]
+
 let view (model : Model) (dispatch : Msg -> unit) =
     let navbarFn = FilmClubNavBar.Component Server.api model.User
     let filmClubHomePageFn = FilmClubHomePage.Component Server.api
     div [] [
         navbarFn ()
         match model.User with
-        | Some user -> filmClubHomePageFn user ()
+        | Some user -> renderRouteTarget model.Route user
         | None -> div [] [str "Loading user" ]
     ]
 
