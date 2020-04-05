@@ -5,9 +5,6 @@ open Elmish.React
 open Elmish.Streams
 open FSharp.Control
 open Fable.React
-open Fable.React.Props
-open Fulma
-open Thoth.Json
 open FilmClubRouter
 open Elmish.Navigation
 
@@ -34,7 +31,7 @@ let urlUpdate (result: Route option) model : Model * Cmd<Msg> =
     | Some (Club id) ->
         { model with Route = Some (Club id) }, Cmd.none
     | None ->
-        model, Navigation.modifyUrl "/#home"
+        model, Navigation.modifyUrl (FilmClubRouter.toPath Home)
 
 
 module Server =
@@ -58,7 +55,7 @@ let userObs () =
 // defines the initial state
 let init route : Model * Cmd<Msg> =
     match route with
-    | None -> { User = None; Route = Some Home }, (Navigation.modifyUrl "/#home")
+    | None -> { User = None; Route = Some Home }, (Navigation.modifyUrl (FilmClubRouter.toPath Home))
     | Some route -> { User = None; Route = Some route }, Cmd.none
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
@@ -72,19 +69,13 @@ let stream model msgs =
     | None -> userObs ()
     | _ -> msgs
 
-let renderRouteTarget (route: Route option) (user: User) =
-    match route with
-    | Some Home -> FilmClubHomePage.Component Server.api user ()
-    | Some (Club c) -> div [] [ Fable.React.Helpers.str "Club" ]
-    | _ -> div [] [ Fable.React.Helpers.str "No route" ]
-
 let view (model : Model) (dispatch : Msg -> unit) =
     let navbarFn = FilmClubNavBar.Component Server.api model.User
     let filmClubHomePageFn = FilmClubHomePage.Component Server.api
     div [] [
         navbarFn ()
         match model.User with
-        | Some user -> renderRouteTarget model.Route user
+        | Some user -> FilmClubRouter.renderRouteTarget Server.api model.Route user
         | None -> div [] [str "Loading user" ]
     ]
 
