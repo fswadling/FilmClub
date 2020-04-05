@@ -7,6 +7,7 @@ open FSharp.Control
 open Fable.React
 open FilmClubRouter
 open Elmish.Navigation
+open Fulma
 
 open Shared
 
@@ -76,8 +77,16 @@ let view (model : Model) (dispatch : Msg -> unit) =
         navbarFn ()
         match model.User with
         | Some user -> FilmClubRouter.renderRouteTarget Server.api model.Route user
-        | None -> div [] [str "Loading user" ]
-    ]
+        | None -> Hero.hero [ Hero.IsFullheightWithNavbar; Hero.Color IsBlack ] [
+            Hero.body [] [
+                Container.container [ Container.IsFluid; Container.Modifiers [Modifier.TextAlignment (Screen.All, TextAlignment.Centered)]] [
+                    div [ ] [
+                        str "Loading user"
+                        Icon.icon [Icon.Size IsLarge ] [ Fable.FontAwesome.Fa.i [ Fable.FontAwesome.Free.Fa.Solid.Spinner; Fable.FontAwesome.Fa.Spin ] []]
+                        ] ] ] ]
+                ]
+
+
 
 
 #if DEBUG
