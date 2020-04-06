@@ -8,8 +8,12 @@ open Fable.React
 open FilmClubRouter
 open Elmish.Navigation
 open Fulma
+open Auth0
 
 open Shared
+
+let auth0Credentials = ("RYOW08F8w735kMjIIqODMkxOcY1UStBk", "dev-9doum9hw.auth0.com")
+
 
 // The model holds data that you want to keep track of while the application is running
 // in this case, we are keeping track of a counter
@@ -23,7 +27,17 @@ type Model = {
 // The Msg type defines what events/actions can occur while the application is running
 // the state of the application changes *only* in reaction to these events
 type Msg =
-    | UserLoaded of User
+    | Login
+    | Authenticated of IAuthResult
+    | SetUserProfile of IAuth0UserProfile
+
+let lock = Auth0Lock.Create auth0Credentials
+
+let getUserInfo (authResult: IAuthResult) push =
+  lock.getUserInfo (authResult.accessToken, fun auth0Error userProfile -> SetUserProfile userProfile |> push)
+
+let onAuthenticated push =
+  lock.on_authenticated (fun authResult -> Authenticated authResult |> push)
 
 let urlUpdate (result: Route option) model : Model * Cmd<Msg> =
     match result with
@@ -46,28 +60,35 @@ module Server =
       |> Remoting.withRouteBuilder Route.builder
       |> Remoting.buildProxy<IFilmClubApi>
 
-let userObs () =
-    Server.api.getUser ()
-        |> AsyncRx.ofAsync
-        |> AsyncRx.delay 2000
-        |> AsyncRx.map UserLoaded
-        |> AsyncRx.toStream "user"
+//let userObs () =
+//    Server.api.getUser ()
+//        |> AsyncRx.ofAsync
+//        |> AsyncRx.delay 2000
+//        |> AsyncRx.map UserLoaded
+//        |> AsyncRx.toStream "user"
 
 // defines the initial state
 let init route : Model * Cmd<Msg> =
     match route with
-    | None -> { User = None; Route = Some Home }, (Navigation.modifyUrl (FilmClubRouter.toPath Home))
-    | Some route -> { User = None; Route = Some route }, Cmd.none
+    | None -> { User = None; Route = Some Home }, Cmd.ofSub (onAuthenticated)
+    | Some route -> { User = None; Route = Some route }, Cmd.ofSub (onAuthenticated)
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
-let update (msg : Msg) (currentModel : Model) : Model * Cmd<Msg> =
+let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     match msg with
-    | UserLoaded user ->
-        { currentModel with User = Some user }, Cmd.none
+    | Login ->
+        lock.show()
+        model, Cmd.none
+    | Authenticated authResult ->
+        let x = authResult
+        model, Cmd.ofSub (getUserInfo authResult)
+    | SetUserProfile userProfile ->
+        let v = { model with User = Some { Name = userProfile.name } }
+        v, Cmd.none
 
 let stream model msgs =
     match model.User with
-    | None -> userObs ()
+    | None -> msgs
     | _ -> msgs
 
 let view (model : Model) (dispatch : Msg -> unit) =
@@ -77,10 +98,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
         navbarFn ()
         match model.User with
         | Some user -> FilmClubRouter.renderRouteTarget Server.api model.Route user
-        | None -> Utils.LoadingPage "Loading User" ]
-
-
-
+        | None -> Button.button [ Button.OnClick (fun _ -> dispatch Login)] [ str "Log in" ] ]
 
 #if DEBUG
 open Elmish.Debug

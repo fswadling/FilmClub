@@ -21,6 +21,7 @@ group Client
     nuget Fable.Elmish.HMR ~> 4
     nuget Fable.Elmish.React ~> 3
     nuget Fable.Elmish.Streams ~> 3
+nuget Fable.Powerpack
 nuget Fable.Reaction
     nuget FSharp.Control.AsyncRx ~> 1.0.0
     nuget Fable.React ~> 5
