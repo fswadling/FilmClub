@@ -39,14 +39,12 @@ let getUserInfo (authResult: IAuthResult) push =
 let onAuthenticated push =
   lock.on_authenticated (fun authResult -> Authenticated authResult |> push)
 
-let urlUpdate (result: Route option) model : Model * Cmd<Msg> =
-    match result with
-    | Some Home ->
-        { model with Route = Some Home }, Cmd.none
-    | Some (Club id) ->
-        { model with Route = Some (Club id) }, Cmd.none
+let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
+    match route with
     | None ->
         model, Navigation.modifyUrl (FilmClubRouter.toPath Home)
+    | route ->
+        { model with Route = route }, Cmd.none
 
 
 module Server =
@@ -98,7 +96,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
         navbarFn ()
         match model.User with
         | Some user -> FilmClubRouter.renderRouteTarget Server.api model.Route user
-        | None -> Button.button [ Button.OnClick (fun _ -> dispatch Login)] [ str "Log in" ] ]
+        | None -> FilmClubLoginPage.Component Server.api (fun () -> dispatch Login) () ]
 
 #if DEBUG
 open Elmish.Debug
