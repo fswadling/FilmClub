@@ -2,6 +2,7 @@ module FilmClubRouter
 open Elmish.UrlParser
 open Elmish
 open Fable.React
+open Auth0
 
 open FilmClubHomePage
 open Shared
@@ -20,9 +21,9 @@ let toPath route =
     | Home -> "/#home"
     | Club id -> "/#club/" + id.ToString()
 
-let renderRouteTarget (api: IFilmClubApi) (route: Route option) (user: User) =
+let renderRouteTarget (api: IFilmClubApi) (route: Route option) (user: IAuth0UserProfile) =
     match route with
-    | Some Home -> FilmClubHomePage.Component api user ()
+    | Some Home -> FilmClubHomePage.Component api { Name = user.name } ()
     | Some (Club c) -> div [] [ Fable.React.Helpers.str "Club" ]
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 

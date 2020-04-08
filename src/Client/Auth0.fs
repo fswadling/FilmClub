@@ -24,9 +24,18 @@ type IAuth0UserProfile =
 type IAuthResult =
   abstract accessToken: string with get, set
 
+type AuthConfig = {
+    allowSignUp: bool
+    allowedConnections:string array
+    autoclose: bool
+}
+
 type IAuth0Lock =
   [<Emit"new $0($1...)">]
   abstract Create: clientId: string * domain: string -> IAuth0Lock
+
+  [<Emit"new $0($1...)">]
+  abstract CreateWithConfig:clientId: string * domain: string * config: AuthConfig -> IAuth0Lock
 
   abstract show: unit -> unit
 
