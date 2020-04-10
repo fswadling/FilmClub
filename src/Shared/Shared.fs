@@ -4,10 +4,6 @@ type Film = {
     Name: string
 }
 
-type User = {
-    Name: string
-}
-
 type Club = {
     Name: string
 }
@@ -21,7 +17,7 @@ module Route =
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
     getFilms: unit -> Async<Film list>
-    getUser: unit -> Async<User>
-    getClubs: User -> Async<Club list>
+    getClubs: string -> Async<Club list>
+    registerUser: string -> Async<bool>
     }
 

@@ -35,12 +35,13 @@ type Msg =
     | Login
     | Logout
     | Authenticated of IAuthResult
-    | SetUserProfile of IAuth0UserProfile
+    | UserProfileLoaded of IAuth0UserProfile
+    | RegisteredInBackend of IAuth0UserProfile
 
 let lock = Auth0Lock.CreateWithConfig auth0Credentials
 
 let getUserInfo (authResult: IAuthResult) push =
-  lock.getUserInfo (authResult.accessToken, fun auth0Error userProfile -> SetUserProfile userProfile |> push)
+  lock.getUserInfo (authResult.accessToken, fun auth0Error userProfile -> UserProfileLoaded userProfile |> push)
 
 let onAuthenticated push =
   lock.on_authenticated (fun authResult -> Authenticated authResult |> push)
@@ -70,6 +71,9 @@ let init route : Model * Cmd<Msg> =
     | None -> { User = None; Route = Some Home }, Cmd.none
     | Some route -> { User = None; Route = Some route }, Cmd.none
 
+let onUserRegisterComplete userProfile newUser =
+    RegisteredInBackend userProfile
+
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     match msg with
@@ -80,7 +84,9 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
         { model with User = None }, Navigation.modifyUrl (FilmClubRouter.toPath Home)
     | Authenticated authResult ->
         model, Cmd.ofSub (getUserInfo authResult)
-    | SetUserProfile userProfile ->
+    | UserProfileLoaded userProfile ->
+        model, Cmd.OfAsync.perform (Server.api.registerUser) userProfile.sub (onUserRegisterComplete userProfile)
+    | RegisteredInBackend userProfile ->
         { model with User = Some userProfile }, Cmd.none
 
 let stream model msgs =

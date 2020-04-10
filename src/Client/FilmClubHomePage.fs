@@ -1,5 +1,6 @@
 module FilmClubHomePage
 
+open Auth0
 open Shared
 open Fable.React
 open Fable.Reaction
@@ -8,7 +9,7 @@ open Fulma
 open FSharp.Control
 
 type private Model = {
-   User: User
+   User: IAuth0UserProfile
    Clubs: Club list option
 }
 
@@ -22,10 +23,10 @@ let private update (currentModel : Model) (msg : Msg) : Model =
     match msg with
     | ClubsLoaded clubs -> { currentModel with Clubs = Some clubs }
 
-let private stream (api: IFilmClubApi) user model (msgs: IAsyncObservable<Msg>) =
+let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<Msg>) =
     match model.Clubs with
     | None ->
-        api.getClubs user
+        api.getClubs user.sub
         |> AsyncRx.ofAsync
         |> AsyncRx.delay 2000
         |> AsyncRx.map ClubsLoaded
@@ -49,7 +50,7 @@ let private view (model : Model) (dispatch : Msg -> unit) =
     | None -> Utils.LoadingPage "Loading Clubs"
     | Some clubs -> renderClubs clubs
 
-let Component (api: IFilmClubApi) (user: User) =
+let Component (api: IFilmClubApi) (user: IAuth0UserProfile) =
     let model = init user
     let streamFn = stream api user
     Reaction.StreamComponent model view update streamFn

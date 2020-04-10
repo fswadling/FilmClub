@@ -26,12 +26,12 @@ let filmApi: IFilmClubApi = {
         { Name = "The Thing"};
         { Name = "Your Name"}
    ]}
-   getClubs = fun user -> async { return [
+   getClubs = fun userId -> async { return [
        { Name = "Bristol friends" };
        { Name = "London friends" }
    ]}
-   getUser = fun () -> async {
-        return { Name = "Fred" }
+   registerUser = fun userId -> async {
+       return false
    }
 }
 
