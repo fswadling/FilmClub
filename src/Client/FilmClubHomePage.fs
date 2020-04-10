@@ -48,7 +48,16 @@ let private renderClubs clubs =
 let private view (model : Model) (dispatch : Msg -> unit) =
     match model.Clubs with
     | None -> Utils.LoadingPage "Loading Clubs"
-    | Some clubs -> renderClubs clubs
+    | Some clubs ->
+    div [] [
+        Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
+            Content.content [ ] [
+                Button.button [ Button.CustomClass "home-btn" ] [ str "Create new club" ]
+                Button.button [ Button.CustomClass "home-btn" ] [ str "Join existing club" ] ] ]
+        renderClubs clubs
+    ]
+
+
 
 let Component (api: IFilmClubApi) (user: IAuth0UserProfile) =
     let model = init user
