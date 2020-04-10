@@ -37,6 +37,7 @@ type Msg =
     | Authenticated of IAuthResult
     | UserProfileLoaded of IAuth0UserProfile
     | RegisteredInBackend of IAuth0UserProfile
+    | RouteCmd of Route
 
 let lock = Auth0Lock.CreateWithConfig auth0Credentials
 
@@ -49,7 +50,7 @@ let onAuthenticated push =
 let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
     match route with
     | None ->
-        model, Navigation.modifyUrl (FilmClubRouter.toPath Home)
+        model, Cmd.none
     | route ->
         { model with Route = route }, Cmd.none
 
@@ -68,11 +69,15 @@ module Server =
 // defines the initial state
 let init route : Model * Cmd<Msg> =
     match route with
-    | None -> { User = None; Route = Some Home }, Cmd.none
+    | None -> { User = None; Route = Some Home }, Navigation.modifyUrl (FilmClubRouter.toPath Home)
     | Some route -> { User = None; Route = Some route }, Cmd.none
 
 let onUserRegisterComplete userProfile newUser =
     RegisteredInBackend userProfile
+
+let dispatchRoute dispatch route =
+    dispatch (RouteCmd route)
+    ()
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
@@ -81,13 +86,15 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
         lock.show()
         model, Cmd.ofSub (onAuthenticated)
     | Logout ->
-        { model with User = None }, Navigation.modifyUrl (FilmClubRouter.toPath Home)
+        { model with User = None }, Navigation.newUrl (FilmClubRouter.toPath Home)
     | Authenticated authResult ->
         model, Cmd.ofSub (getUserInfo authResult)
     | UserProfileLoaded userProfile ->
         model, Cmd.OfAsync.perform (Server.api.registerUser) userProfile.sub (onUserRegisterComplete userProfile)
     | RegisteredInBackend userProfile ->
         { model with User = Some userProfile }, Cmd.none
+    | RouteCmd route ->
+        { model with Route = Some route }, Navigation.newUrl (FilmClubRouter.toPath route)
 
 let stream model msgs =
     match model.User with
@@ -96,11 +103,11 @@ let stream model msgs =
 
 let view (model : Model) (dispatch : Msg -> unit) =
     let navbarFn = FilmClubNavBar.Component Server.api (fun () -> dispatch Logout) model.User
-    let filmClubHomePageFn = FilmClubHomePage.Component Server.api
+    let dispRoute = dispatchRoute dispatch
     div [] [
         navbarFn ()
         match model.User with
-        | Some user -> FilmClubRouter.renderRouteTarget Server.api model.Route user
+        | Some user -> FilmClubRouter.renderRouteTarget Server.api dispRoute model.Route user
         | None -> FilmClubLandingPage.Component Server.api (fun () -> dispatch Login) () ]
 
 #if DEBUG

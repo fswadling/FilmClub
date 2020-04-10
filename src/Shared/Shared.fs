@@ -21,3 +21,8 @@ type IFilmClubApi = {
     registerUser: string -> Async<bool>
     }
 
+type Route =
+    | Home
+    | Club of int
+    | NewClub
+

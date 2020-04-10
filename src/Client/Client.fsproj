@@ -10,9 +10,10 @@
     <Compile Include="Version.fs" />
     <Compile Include="Auth0.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="FilmClubNewClubForm.fs" />
+    <Compile Include="FilmClubHomePage.fs" />
     <Compile Include="FilmClubLandingPage.fs" />
     <Compile Include="FilmClubNavBar.fs" />
-    <Compile Include="FilmClubHomePage.fs" />
     <Compile Include="FilmClubRouter.fs" />
     <Compile Include="Client.fs" />
   </ItemGroup>
