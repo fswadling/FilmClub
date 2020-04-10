@@ -31,6 +31,10 @@ type AuthConfig = {
     autoclose: bool
 }
 
+type GetSessionParams = {
+    scope: string
+}
+
 type IAuth0Lock =
   [<Emit"new $0($1...)">]
   abstract Create: clientId: string * domain: string -> IAuth0Lock
@@ -44,6 +48,10 @@ type IAuth0Lock =
   abstract on_authenticated: callback: Func<IAuthResult, unit> -> unit
 
   abstract getUserInfo: token: string * callback: Func<IAuth0Error, IAuth0UserProfile, unit> -> unit
+
+  abstract checkSession: options: GetSessionParams * callback: Func<IAuth0Error, IAuthResult, unit> -> unit
+
+  abstract logout: unit -> unit
 
 
 let Auth0Lock:IAuth0Lock = importDefault "auth0-lock"

@@ -9,6 +9,7 @@ open FilmClubRouter
 open Elmish.Navigation
 open Fulma
 open Auth0
+open Fable.Core.JsInterop
 
 open Shared
 
@@ -42,10 +43,19 @@ type Msg =
 let lock = Auth0Lock.CreateWithConfig auth0Credentials
 
 let getUserInfo (authResult: IAuthResult) push =
-  lock.getUserInfo (authResult.accessToken, fun auth0Error userProfile -> UserProfileLoaded userProfile |> push)
+    lock.getUserInfo (authResult.accessToken, (fun err userProfile ->
+        UserProfileLoaded userProfile |> push))
 
 let onAuthenticated push =
-  lock.on_authenticated (fun authResult -> Authenticated authResult |> push)
+    lock.on_authenticated (fun authResult -> Authenticated authResult |> push)
+
+let authenticationSub model =
+    Cmd.ofSub onAuthenticated
+
+let checkAuthentication push =
+    let arg = createEmpty<GetSessionParams>
+    lock.checkSession ({scope = "openid profile email" }, fun authError auth ->
+        Authenticated auth |> push)
 
 let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
     match route with
@@ -69,8 +79,8 @@ module Server =
 // defines the initial state
 let init route : Model * Cmd<Msg> =
     match route with
-    | None -> { User = None; Route = Some Home }, Navigation.modifyUrl (FilmClubRouter.toPath Home)
-    | Some route -> { User = None; Route = Some route }, Cmd.none
+    | None -> { User = None; Route = Some Home }, Cmd.batch( seq { Navigation.modifyUrl (FilmClubRouter.toPath Home); Cmd.ofSub checkAuthentication })
+    | Some route -> { User = None; Route = Some route }, Cmd.ofSub checkAuthentication
 
 let onUserRegisterComplete userProfile newUser =
     RegisteredInBackend userProfile
@@ -84,8 +94,9 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     match msg with
     | Login ->
         lock.show()
-        model, Cmd.ofSub (onAuthenticated)
+        model, Cmd.none
     | Logout ->
+        lock.logout ()
         { model with User = None }, Navigation.newUrl (FilmClubRouter.toPath Home)
     | Authenticated authResult ->
         model, Cmd.ofSub (getUserInfo authResult)
@@ -117,6 +128,7 @@ open Elmish.HMR
 
 Program.mkProgram init update view
 |> Program.withStream stream "msgs"
+|> Program.withSubscription authenticationSub
 |> Program.toNavigable FilmClubRouter.urlParser urlUpdate
 #if DEBUG
 |> Program.withConsoleTrace
