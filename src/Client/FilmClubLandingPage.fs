@@ -30,8 +30,7 @@ let private view (model : Model) (dispatch : Msg -> unit) =
             Container.container [ Container.IsFluid; Container.Modifiers [
                 Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
                     Content.content [ ] [
-                        h1 [] [ str "Welcome to Fred's Film Club!"]
-                        Button.button [ Button.OnClick (fun _ -> dispatch Login)] [ str "Enter" ] ] ] ] ]
+                        h1 [] [ str "Welcome to Fred's Film Club!"] ] ] ] ]
 
 
 let Component (api: IFilmClubApi) (login: unit -> unit) =
