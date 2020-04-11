@@ -25,10 +25,17 @@ type IAuth0UserProfile =
 type IAuthResult =
   abstract accessToken: string with get, set
 
+type AuthConfigAuthSection = {
+    redirect: bool
+    redirectUrl: string
+    responseType: string
+}
+
 type AuthConfig = {
     allowSignUp: bool
     allowedConnections:string array
     autoclose: bool
+    auth: AuthConfigAuthSection
 }
 
 type GetSessionParams = {
