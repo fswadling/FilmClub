@@ -42,6 +42,8 @@ type GetSessionParams = {
     scope: string
 }
 
+type CheckSessionResult = Result of IAuthResult | Error of IAuth0Error
+
 type IAuth0Lock =
   [<Emit"new $0($1...)">]
   abstract Create: clientId: string * domain: string -> IAuth0Lock
@@ -63,3 +65,14 @@ type IAuth0Lock =
 
 let Auth0Lock:IAuth0Lock = importDefault "auth0-lock"
 
+let private onCheckSessionComplete (push: CheckSessionResult -> unit) (authError: IAuth0Error) (auth: IAuthResult) =
+    let isAuthorised = not (Fable.Core.JsInterop.isNullOrUndefined auth)
+    let result = match isAuthorised with
+                 | true -> Result auth
+                 | false -> Error authError
+    push result
+    ()
+
+let checkSessionHelper (authLock: IAuth0Lock) (config: GetSessionParams) (push: CheckSessionResult -> unit) =
+    let func = onCheckSessionComplete push
+    authLock.checkSession (config, System.Func<IAuth0Error, IAuthResult, unit>(onCheckSessionComplete push))

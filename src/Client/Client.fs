@@ -57,13 +57,13 @@ let onAuthenticated push =
 let authenticationSub model =
     Cmd.ofSub onAuthenticated
 
-let onCheckSessionComplete push authError auth =
-    match (Fable.Core.JsInterop.isNullOrUndefined auth) with
-    | false -> Authenticated auth |> push
-    | true -> Login |> push
+let onCheckSessionComplete push result =
+    match result with
+    | Result result -> Authenticated result |> push
+    | Error error -> Login |> push
 
 let checkAuthentication push =
-    lock.checkSession ({scope = "openid profile email" }, System.Func<IAuth0Error, IAuthResult, unit>(onCheckSessionComplete push))
+    Auth0.checkSessionHelper Auth0Lock {scope = "openid profile email" }, (onCheckSessionComplete push)
 
 let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
     match route with
