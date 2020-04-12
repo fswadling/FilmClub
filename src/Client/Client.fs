@@ -74,7 +74,6 @@ let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
 
 
 module Server =
-
     open Shared
     open Fable.Remoting.Client
 
@@ -126,7 +125,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
         navbarFn ()
         match model.User with
         | Some user -> FilmClubRouter.renderRouteTarget Server.api dispRoute model.Route user
-        | None -> FilmClubLandingPage.Component Server.api (fun () -> dispatch Login) () ]
+        | None -> FilmClubLandingPage.render ]
 
 #if DEBUG
 open Elmish.Debug
