@@ -11,5 +11,7 @@ let render =
             Container.container [ Container.IsFluid; Container.Modifiers [
                 Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
                     Content.content [ ] [
-                        h1 [] [ str "Welcome to Fred's Film Club!"] ] ] ] ]
+                        h1 [] [ str "Welcome to Fred's Film Club!"]
+                        Icon.icon [Icon.Size IsLarge ] [ Fable.FontAwesome.Fa.i [ Fable.FontAwesome.Free.Fa.Solid.Spinner; Fable.FontAwesome.Fa.Spin ] [] ] ] ] ] ]
+
 
