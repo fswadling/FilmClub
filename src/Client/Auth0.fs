@@ -75,4 +75,4 @@ let private onCheckSessionComplete (push: CheckSessionResult -> unit) (authError
 
 let checkSessionHelper (authLock: IAuth0Lock) (config: GetSessionParams) (push: CheckSessionResult -> unit) =
     let func = onCheckSessionComplete push
-    authLock.checkSession (config, System.Func<IAuth0Error, IAuthResult, unit>(onCheckSessionComplete push))
+    authLock.checkSession (config, System.Func<IAuth0Error, IAuthResult, unit>(func))

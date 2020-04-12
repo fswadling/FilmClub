@@ -62,8 +62,8 @@ let onCheckSessionComplete push result =
     | Result result -> Authenticated result |> push
     | Error error -> Login |> push
 
-let checkAuthentication push =
-    Auth0.checkSessionHelper Auth0Lock {scope = "openid profile email" }, (onCheckSessionComplete push)
+let checkAuthentication (push: Msg -> unit) =
+    Auth0.checkSessionHelper lock {scope = "openid profile email" } (onCheckSessionComplete push)
 
 let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
     match route with
@@ -95,7 +95,6 @@ let onUserRegisterComplete userProfile newUser =
 
 let dispatchRoute dispatch route =
     dispatch (RouteCmd route)
-    ()
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
