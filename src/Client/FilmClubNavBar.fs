@@ -31,7 +31,7 @@ let private renderUserNavbarItems logout (userOption: IAuth0UserProfile option) 
         | Some user -> [
             Navbar.End.div [ ] [
                 Navbar.Item.div [ ] [ Image.image [ Image.Is24x24 ] [ img [ Src user.picture ]  ] ]
-                Navbar.Item.div [ Navbar.Item.Modifiers [ Modifier.TextColor IsWhite ] ] [ str user.name ]
+                Navbar.Item.div [ Navbar.Item.Modifiers [ Modifier.TextColor IsWhite ] ] [ str user.nickname ]
                 Navbar.Item.div [] [ Button.button [ Button.OnClick (fun _ -> logout ())] [ str "Log out"] ] ]
             ]
         | None -> []

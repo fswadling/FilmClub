@@ -21,6 +21,7 @@ type IAuth0UserProfile =
   abstract member name: string with get, set
   abstract member picture: string with get, set
   abstract member sub: string with get, set
+  abstract member nickname: string with get, set
 
 type IAuthResult =
   abstract accessToken: string with get, set
