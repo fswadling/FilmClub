@@ -9,4 +9,6 @@ group Client
     Fulma
     Fable.FontAwesome.Free
     Fable.Reaction
+    Thoth.Elmish.FormBuilder
+    Thoth.Elmish.FormBuilder.BasicFields
 

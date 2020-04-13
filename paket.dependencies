@@ -28,6 +28,8 @@ nuget Fable.Reaction
     nuget Fable.Remoting.Client ~> 5
     nuget Fulma ~> 2
     nuget Fable.FontAwesome.Free ~> 2
+nuget Thoth.Elmish.FormBuilder
+nuget Thoth.Elmish.FormBuilder.BasicFields
 
 group Build
     source https://api.nuget.org/v3/index.json
