@@ -18,7 +18,6 @@ module Route =
 type IFilmClubApi = {
     getFilms: unit -> Async<Film list>
     getClubs: string -> Async<Club list>
-    registerUser: string -> Async<bool>
     }
 
 type Route =

@@ -12,16 +12,22 @@ open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Microsoft.WindowsAzure.Storage
 
+open LiteDB
+open LiteDB.FSharp
+
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 
 let publicPath = tryGetEnv "public_path" |> Option.defaultValue "../Client/public" |> Path.GetFullPath
 let storageAccount = tryGetEnv "STORAGE_CONNECTIONSTRING" |> Option.defaultValue "UseDevelopmentStorage=true" |> CloudStorageAccount.Parse
 
+//let mapper = FSharpBsonMapper()
+//use db = new LiteDatabase("simple.db", mapper)
+
 let port =
     "SERVER_PORT"
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
-let filmApi: IFilmClubApi = {
+let getFilmApi (database: LiteDatabase): IFilmClubApi = {
    getFilms = fun () -> async { return [
         { Name = "The Thing"};
         { Name = "Your Name"}
@@ -30,15 +36,13 @@ let filmApi: IFilmClubApi = {
        { Name = "Bristol friends" };
        { Name = "London friends" }
    ]}
-   registerUser = fun userId -> async {
-       return false
-   }
 }
 
 let webApp =
+    let db = new LiteDatabase("simple.db")
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue filmApi
+    |> Remoting.fromContext (fun ctx -> getFilmApi db)
     |> Remoting.buildHttpHandler
 
 let configureAzure (services:IServiceCollection) =

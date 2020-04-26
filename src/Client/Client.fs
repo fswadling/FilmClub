@@ -42,7 +42,6 @@ type Msg =
     | Logout
     | Authenticated of IAuthResult
     | UserProfileLoaded of IAuth0UserProfile
-    | RegisteredInBackend of IAuth0UserProfile
     | RouteCmd of Route
 
 let lock = Auth0Lock.CreateWithConfig auth0Credentials
@@ -89,9 +88,6 @@ let init route : Model * Cmd<Msg> =
     | None -> { User = None; Route = Some Home }, Cmd.batch( seq { Navigation.modifyUrl (FilmClubRouter.toPath Home); Cmd.ofSub checkAuthentication })
     | Some route -> { User = None; Route = Some route }, Cmd.ofSub checkAuthentication
 
-let onUserRegisterComplete userProfile newUser =
-    RegisteredInBackend userProfile
-
 let dispatchRoute dispatch route =
     dispatch (RouteCmd route)
 
@@ -107,8 +103,6 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | Authenticated authResult ->
         model, Cmd.ofSub (getUserInfo authResult)
     | UserProfileLoaded userProfile ->
-        model, Cmd.OfAsync.perform (Server.api.registerUser) userProfile.sub (onUserRegisterComplete userProfile)
-    | RegisteredInBackend userProfile ->
         { model with User = Some userProfile }, Cmd.none
     | RouteCmd route ->
         { model with Route = Some route }, Navigation.newUrl (FilmClubRouter.toPath route)
