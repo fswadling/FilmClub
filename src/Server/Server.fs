@@ -33,9 +33,30 @@ let getFilmApi (database: LiteDatabase): IFilmClubApi = {
         { Name = "Your Name"}
    ]}
    getClubs = fun userId -> async { return [
-       { Name = "Bristol friends" };
-       { Name = "London friends" }
+       {
+           Id = 0
+           Name = "Bristol friends"
+           OwnerId = ""
+           MemberIds = []
+       };
+       {
+           Id = 1
+           Name = "London friends"
+           OwnerId = ""
+           MemberIds = []
+       }
    ]}
+   saveNewClub = fun (name: string) (userId: string) -> async {
+       let clubs = database.GetCollection<Club>("clubs")
+       let club: Club = {
+           Id = 0
+           Name = name
+           OwnerId = userId
+           MemberIds = [ userId ]
+       }
+       clubs.Insert(club) |> ignore
+       return club
+   }
 }
 
 let webApp =

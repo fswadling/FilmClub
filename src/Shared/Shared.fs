@@ -4,7 +4,11 @@ type Film = {
     Name: string
 }
 
+[<CLIMutable>]
 type Club = {
+    Id: int
+    OwnerId: string
+    MemberIds: string list
     Name: string
 }
 
@@ -18,6 +22,7 @@ module Route =
 type IFilmClubApi = {
     getFilms: unit -> Async<Film list>
     getClubs: string -> Async<Club list>
+    saveNewClub: string -> string -> Async<Club>
     }
 
 type Route =
