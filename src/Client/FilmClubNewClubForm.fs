@@ -4,11 +4,8 @@ open Auth0
 open Shared
 open Fable.React
 open Fable.Reaction
-open Fable.React.Props
 open Fulma
-open Elmish
 open FSharp.Control
-open Fable.Core.JsInterop
 
 open Thoth.Elmish
 open Thoth.Elmish.FormBuilder
@@ -79,8 +76,7 @@ let private getFrmState (json:string): FormState option =
     | _ -> None
 
 let private makeCall api state sub =
-    Browser.Dom.console.log(state)
-    AsyncRx.ofAsync (api.saveNewClub state.Name sub)
+    AsyncRx.ofAsync (api.SaveNewClub state.Name state.Image sub)
 
 let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<MyMsg>) =
     let json = Form.toJson formConfig model.FormState

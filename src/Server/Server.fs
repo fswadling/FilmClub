@@ -20,37 +20,29 @@ let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" 
 let publicPath = tryGetEnv "public_path" |> Option.defaultValue "../Client/public" |> Path.GetFullPath
 let storageAccount = tryGetEnv "STORAGE_CONNECTIONSTRING" |> Option.defaultValue "UseDevelopmentStorage=true" |> CloudStorageAccount.Parse
 
-//let mapper = FSharpBsonMapper()
-//use db = new LiteDatabase("simple.db", mapper)
+let mapper = LiteDB.FSharp.FSharpBsonMapper()
+let db = new LiteDatabase("simple.db", mapper)
 
 let port =
     "SERVER_PORT"
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
-let getFilmApi (database: LiteDatabase): IFilmClubApi = {
-   getFilms = fun () -> async { return [
+let getFilmApi (database: LiteDatabase) = {
+   GetFilms = fun () -> async { return [
         { Name = "The Thing"};
         { Name = "Your Name"}
    ]}
-   getClubs = fun userId -> async { return [
-       {
-           Id = 0
-           Name = "Bristol friends"
-           OwnerId = ""
-           MemberIds = []
-       };
-       {
-           Id = 1
-           Name = "London friends"
-           OwnerId = ""
-           MemberIds = []
-       }
-   ]}
-   saveNewClub = fun (name: string) (userId: string) -> async {
+   GetClubs = fun userId -> async {
+       let clubs = database.GetCollection<Club>("clubs")
+       let list = clubs.FindAll() |> Seq.toList
+       return list
+   }
+   SaveNewClub = fun (name: string) (image: ImageType option) (userId: string) -> async {
        let clubs = database.GetCollection<Club>("clubs")
        let club: Club = {
            Id = 0
            Name = name
+           Image = image
            OwnerId = userId
            MemberIds = [ userId ]
        }
@@ -60,7 +52,7 @@ let getFilmApi (database: LiteDatabase): IFilmClubApi = {
 }
 
 let webApp =
-    let db = new LiteDatabase("simple.db")
+
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
     |> Remoting.fromContext (fun ctx -> getFilmApi db)

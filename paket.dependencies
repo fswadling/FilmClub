@@ -4,7 +4,7 @@ group Server
     storage: none
 
     nuget FSharp.Core
-nuget LiteDB.FSharp
+    nuget LiteDB.FSharp
     nuget Saturn
     nuget Microsoft.AspNetCore.Authentication.JwtBearer 3.0.2 // pin for netcoreapp30
     nuget Fable.Remoting.Giraffe ~> 3

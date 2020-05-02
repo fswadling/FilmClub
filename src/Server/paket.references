@@ -1,7 +1,9 @@
 group Server
     FSharp.Core
+    LiteDB.FSharp
+    Newtonsoft.Json
     Saturn
     Microsoft.ApplicationInsights.AspNetCore
     WindowsAzure.Storage
     Fable.Remoting.Giraffe
-    LiteDB.FSharp
+

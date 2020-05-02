@@ -12,6 +12,7 @@ type ImageType = {
 [<CLIMutable>]
 type Club = {
     Id: int
+    Image: ImageType option
     OwnerId: string
     MemberIds: string list
     Name: string
@@ -25,9 +26,9 @@ module Route =
 /// A type that specifies the communication protocol between client and server
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
-    getFilms: unit -> Async<Film list>
-    getClubs: string -> Async<Club list>
-    saveNewClub: string -> string -> Async<Club>
+    GetFilms: unit -> Async<Film list>
+    GetClubs: string -> Async<Club list>
+    SaveNewClub: string -> ImageType option -> string -> Async<Club>
     }
 
 type Route =

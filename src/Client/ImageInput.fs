@@ -111,7 +111,7 @@ module ImageInput =
             yield! match state.Value with
                     |Some image -> [
                         Fulma.Image.image [ ] [
-                            img [ Class "card-image"; Src image.Image ] ] ]
+                            img [ Class "image-input-image"; Src image.Image ] ] ]
                     | None -> [] ]
 
     let decoder: Decoder<ImageType option>=

@@ -27,7 +27,7 @@ let private update (currentModel : Model) (msg : Msg) : Model =
 let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<Msg>) =
     match model.Clubs with
     | None ->
-        api.getClubs user.sub
+        api.GetClubs user.sub
         |> AsyncRx.ofAsync
         |> AsyncRx.delay 2000
         |> AsyncRx.map ClubsLoaded
@@ -38,6 +38,7 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
 
 let private renderClub (club: Club) =
     div [ ClassName "card" ] [
+        yield! club.Image |> function |Some im -> [ img [ Class "card-image"; Src im.Image ] ] |None -> []
         div [ ClassName "card-title" ] [
             str club.Name
         ]
