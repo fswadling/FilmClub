@@ -4,6 +4,11 @@ type Film = {
     Name: string
 }
 
+type ImageType = {
+    Name: string
+    Image: string
+}
+
 [<CLIMutable>]
 type Club = {
     Id: int

@@ -8,6 +8,7 @@ open Fable.React.Props
 open Fulma
 open Elmish
 open FSharp.Control
+open Fable.Core.JsInterop
 
 open Thoth.Elmish
 open Thoth.Elmish.FormBuilder
@@ -15,11 +16,17 @@ open Thoth.Elmish.FormBuilder.BasicFields
 open Thoth.Json
 
 type private FormState =
-    { Name: string }
+    {
+        Name: string
+        Image: ImageType option
+    }
 
     static member Decoder : Decoder<FormState> =
         Decode.object
-            (fun get -> { Name = get.Required.Field "name" Decode.string })
+            (fun get -> {
+                Name = get.Required.Field "name" Decode.string
+                Image = get.Required.Field "image" CustomFields.ImageInput.decoder
+                })
 
 type private Model = {
    FormState : FormBuilder.Types.State
@@ -41,6 +48,14 @@ let (formState, formConfig) =
                 .IsRequired()
                 .WithDefaultView()
         )
+        .AddField(
+            CustomFields.BasicImageInput
+                .Create("image")
+                .WithLabel("Club image")
+                .WithPlaceholder("Choose an image for the club")
+                .IsRequired()
+                .WithDefaultView()
+        )
         .Build()
 
 let private init =
@@ -57,23 +72,24 @@ let private update (model : Model) (msg : MyMsg) : Model =
     | ClubSaved club ->
         model
 
-let getName (json:string): string option =
+let private getFrmState (json:string): FormState option =
     let body = Decode.fromString FormState.Decoder json
     match body with
-    | Ok frmState -> Some frmState.Name
+    | Ok frmState -> Some frmState
     | _ -> None
 
-let makeCall api name sub =
-    AsyncRx.ofAsync (api.saveNewClub name sub)
+let private makeCall api state sub =
+    Browser.Dom.console.log(state)
+    AsyncRx.ofAsync (api.saveNewClub state.Name sub)
 
 let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<MyMsg>) =
     let json = Form.toJson formConfig model.FormState
-    let nameOpt = getName json
+    let stateOpt = getFrmState json
     let newClubs =
         msgs
         |> AsyncRx.filter (function | SaveClub -> true | _ -> false)
-        |> AsyncRx.choose (fun m -> nameOpt)
-        |> AsyncRx.flatMapLatest (fun name -> makeCall api name user.sub)
+        |> AsyncRx.choose (fun m -> stateOpt)
+        |> AsyncRx.flatMapLatest (fun state -> makeCall api state user.sub)
         |> AsyncRx.map ClubSaved
 
     newClubs
@@ -82,6 +98,15 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
 
 let clickButton dispatch () =
     dispatch SaveClub
+
+let getImageElementToDisplay (imageOption: ImageType option): ReactElement =
+    match imageOption with
+    | None -> str "No image selected"
+    | Some im -> str im.Name
+
+let private getIsValid (model: Model) =
+    let (state, isValid) = Form.validate formConfig model.FormState
+    isValid
 
 let private view (model : Model) (dispatch : MyMsg -> unit) =
     Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
@@ -93,19 +118,8 @@ let private view (model : Model) (dispatch : MyMsg -> unit) =
                     State = model.FormState
                     Dispatch = dispatch
                     ActionsArea = (div [] [])
-                    Loader = Form.DefaultLoader }
-                Field.div [ ] [
-                    File.file [ File.HasName ] [ File.label [ ] [
-                        File.input [ ]
-                        File.cta [ ] [
-                            File.icon [ ] [
-                                Icon.icon [ ] [
-                                    Fable.FontAwesome.Fa.i [ Fable.FontAwesome.Free.Fa.Solid.Upload ]  [ ] ] ]
-                            File.label [ ] [
-                                str "Choose an image for the club..." ] ]
-                        File.name [ ] [
-                            str "Club image" ] ] ] ] ]
-            Button.button [ Button.OnClick (fun _ -> dispatch SaveClub) ] [ str "Create Club" ] ] ]
+                    Loader = Form.DefaultLoader } ]
+            Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveClub) ] [ str "Create Club" ] ] ]
 
 let Component (api: IFilmClubApi) (user: IAuth0UserProfile) =
     let model = init
