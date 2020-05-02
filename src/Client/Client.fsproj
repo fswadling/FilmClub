@@ -11,6 +11,7 @@
     <Compile Include="Auth0.fs" />
     <Compile Include="ImageInput.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="FilmClubClubPage.fs" />
     <Compile Include="FilmClubNewClubForm.fs" />
     <Compile Include="FilmClubHomePage.fs" />
     <Compile Include="FilmClubLandingPage.fs" />

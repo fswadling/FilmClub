@@ -23,7 +23,7 @@ let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route:
     match route with
     | Some Home -> FilmClubHomePage.Component api dispatchRoute user ()
     | Some NewClub -> FilmClubNewClubForm.Component api dispatchRoute user ()
-    | Some (Club c) -> div [] [ Fable.React.Helpers.str "Club" ]
+    | Some (Club id) -> FilmClubClubPage.Component id api dispatchRoute user ()
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 
 let urlParser location = parsePath router location

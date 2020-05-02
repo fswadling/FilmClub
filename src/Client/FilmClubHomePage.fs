@@ -27,7 +27,7 @@ let private update (currentModel : Model) (msg : Msg) : Model =
 let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<Msg>) =
     match model.Clubs with
     | None ->
-        api.GetClubs user.sub
+        api.GetClubsForUser user.sub
         |> AsyncRx.ofAsync
         |> AsyncRx.map ClubsLoaded
         |> AsyncRx.tag "clubsLoading"

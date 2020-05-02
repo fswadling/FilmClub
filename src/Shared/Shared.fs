@@ -27,7 +27,8 @@ module Route =
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
     GetFilms: unit -> Async<Film list>
-    GetClubs: string -> Async<Club list>
+    GetClubsForUser: string -> Async<Club list>
+    GetClubById: int -> Async<Club>
     SaveNewClub: string -> ImageType option -> string -> Async<Club>
     }
 

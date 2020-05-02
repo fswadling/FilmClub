@@ -32,7 +32,12 @@ let getFilmApi (database: LiteDatabase) = {
         { Name = "The Thing"};
         { Name = "Your Name"}
    ]}
-   GetClubs = fun userId -> async {
+   GetClubById = fun (id: int) -> async {
+       let clubs = database.GetCollection<Club>("clubs")
+       let bsonId = BsonValue(id)
+       return clubs.FindById(bsonId)
+   }
+   GetClubsForUser = fun userId -> async {
        let clubs = database.GetCollection<Club>("clubs")
        let list = clubs.Find (fun club -> List.contains userId club.MemberIds) |> Seq.toList
        return list
