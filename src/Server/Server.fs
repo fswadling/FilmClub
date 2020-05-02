@@ -34,7 +34,7 @@ let getFilmApi (database: LiteDatabase) = {
    ]}
    GetClubs = fun userId -> async {
        let clubs = database.GetCollection<Club>("clubs")
-       let list = clubs.FindAll() |> Seq.toList
+       let list = clubs.Find (fun club -> List.contains userId club.MemberIds) |> Seq.toList
        return list
    }
    SaveNewClub = fun (name: string) (image: ImageType option) (userId: string) -> async {

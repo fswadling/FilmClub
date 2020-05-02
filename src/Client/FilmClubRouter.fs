@@ -22,7 +22,7 @@ let toPath route =
 let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route: Route option) (user: IAuth0UserProfile) =
     match route with
     | Some Home -> FilmClubHomePage.Component api dispatchRoute user ()
-    | Some NewClub -> FilmClubNewClubForm.Component api user ()
+    | Some NewClub -> FilmClubNewClubForm.Component api dispatchRoute user ()
     | Some (Club c) -> div [] [ Fable.React.Helpers.str "Club" ]
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 

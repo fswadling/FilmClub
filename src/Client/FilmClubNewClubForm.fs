@@ -59,7 +59,7 @@ let private init =
     let (formState, formCmds) = Form.init formConfig formState
     { FormState = formState }
 
-let private update (model : Model) (msg : MyMsg) : Model =
+let private update (dispatchRoute: Route -> unit) (model : Model) (msg : MyMsg) : Model =
     match msg with
     | OnFormMsg msg ->
         let (formState, formCmd) = Form.update formConfig msg model.FormState
@@ -67,6 +67,7 @@ let private update (model : Model) (msg : MyMsg) : Model =
     | SaveClub ->
         model
     | ClubSaved club ->
+        dispatchRoute (Club club.Id) |> ignore
         model
 
 let private getFrmState (json:string): FormState option =
@@ -104,7 +105,7 @@ let private getIsValid (model: Model) =
     let (state, isValid) = Form.validate formConfig model.FormState
     isValid
 
-let private view (model : Model) (dispatch : MyMsg -> unit) =
+let private view (model : Model) (dispatch : MyMsg -> unit)  =
     Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
         Content.content [ ] [
             h1 [] [str "Create new club" ]
@@ -117,6 +118,6 @@ let private view (model : Model) (dispatch : MyMsg -> unit) =
                     Loader = Form.DefaultLoader } ]
             Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveClub) ] [ str "Create Club" ] ] ]
 
-let Component (api: IFilmClubApi) (user: IAuth0UserProfile) =
+let Component (api: IFilmClubApi) (dispatchRoute: Route -> unit) (user: IAuth0UserProfile) =
     let model = init
-    Reaction.StreamComponent model view update (stream api user)
+    Reaction.StreamComponent model view (update dispatchRoute) (stream api user)

@@ -29,23 +29,22 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
     | None ->
         api.GetClubs user.sub
         |> AsyncRx.ofAsync
-        |> AsyncRx.delay 2000
         |> AsyncRx.map ClubsLoaded
         |> AsyncRx.tag "clubsLoading"
     | _ ->
     msgs
         |> AsyncRx.tag "msgs"
 
-let private renderClub (club: Club) =
-    div [ ClassName "card" ] [
+let private renderClub (dispatchRoute: Route -> unit) (club: Club) =
+    button [ ClassName "card"; OnClick (fun e -> dispatchRoute (Club club.Id) |> ignore)  ] [
         yield! club.Image |> function |Some im -> [ img [ Class "card-image"; Src im.Image ] ] |None -> []
         div [ ClassName "card-title" ] [
             str club.Name
         ]
     ]
 
-let private renderClubs clubs =
-    let cards = Seq.map renderClub clubs
+let private renderClubs (dispatchRoute: Route -> unit) clubs =
+    let cards = Seq.map (renderClub dispatchRoute) clubs
     div [ ClassName "card-list" ] cards
 
 let private view (dispatchRoute: Route -> unit) (model : Model) (dispatch : Msg -> unit) =
@@ -57,7 +56,7 @@ let private view (dispatchRoute: Route -> unit) (model : Model) (dispatch : Msg 
             Content.content [ ] [
                 Button.button [ Button.CustomClass "home-btn"; Button.OnClick (fun _ -> dispatchRoute NewClub) ] [ str "Create new club" ]
                 Button.button [ Button.CustomClass "home-btn" ] [ str "Join existing club" ] ] ]
-        renderClubs clubs
+        renderClubs dispatchRoute clubs
     ]
 
 let Component (api: IFilmClubApi) dispatchRoute (user: IAuth0UserProfile) =
