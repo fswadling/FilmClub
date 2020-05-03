@@ -12,6 +12,7 @@ open Auth0
 open Fable.Core.JsInterop
 
 open Shared
+open Routes
 
 let auth0Config: AuthConfig = {
     allowSignUp = true
@@ -64,13 +65,22 @@ let onCheckSessionComplete push result =
 let checkAuthentication (push: Msg -> unit) =
     Auth0.checkSessionHelper lock {scope = "openid profile email" } (onCheckSessionComplete push)
 
-let urlUpdate (route: Route option) (model: Model) : Model * Cmd<Msg> =
-    match route with
+let routeIsSame route1 route2 =
+    let path1 = Routes.toPath route1
+    let path2 = Routes.toPath route2
+    path1 = path2
+
+let urlUpdate (optRoute: Route option) (model: Model) : Model * Cmd<Msg> =
+    match optRoute with
     | None ->
         model, Cmd.none
-    | route ->
-        { model with Route = route }, Cmd.none
-
+    | Some route ->
+        model.Route
+            |> Option.map (routeIsSame route)
+            |> Option.defaultValue false
+            |> function
+                | true -> model, Cmd.none
+                | false -> { model with Route = Some route }, Cmd.none
 
 module Server =
     open Shared
@@ -85,7 +95,7 @@ module Server =
 // defines the initial state
 let init route : Model * Cmd<Msg> =
     match route with
-    | None -> { User = None; Route = Some Home }, Cmd.batch( seq { Navigation.modifyUrl (FilmClubRouter.toPath Home); Cmd.ofSub checkAuthentication })
+    | None -> { User = None; Route = Some Home }, Cmd.batch( seq { Navigation.modifyUrl (Routes.toPath Home); Cmd.ofSub checkAuthentication })
     | Some route -> { User = None; Route = Some route }, Cmd.ofSub checkAuthentication
 
 let dispatchRoute dispatch route =
@@ -99,18 +109,26 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
         model, Cmd.none
     | Logout ->
         lock.logout ()
-        { model with User = None }, Navigation.newUrl (FilmClubRouter.toPath Home)
+        { model with User = None }, Navigation.newUrl (Routes.toPath Home)
     | Authenticated authResult ->
         model, Cmd.ofSub (getUserInfo authResult)
     | UserProfileLoaded userProfile ->
-        { model with User = Some userProfile }, Cmd.none
+        let routeCmd =
+            model.Route
+            |> Option.bind (Routes.getDataForRoute Server.api)
+            |> Option.map (Utils.mapAsync RouteCmd)
+            |> (function | Some asyn -> Cmd.OfAsync.result asyn | None -> Cmd.none)
+        { model with User = Some userProfile }, routeCmd
     | RouteCmd route ->
-        { model with Route = Some route }, Navigation.newUrl (FilmClubRouter.toPath route)
+        Routes.getDataForRoute Server.api route
+            |> Option.map (Utils.mapAsync RouteCmd)
+            |> Option.map Cmd.OfAsync.result
+            |> function
+                | Some cmd -> model, cmd
+                | None -> { model with Route = Some route }, Navigation.newUrl (Routes.toPath route)
 
 let stream model msgs =
-    match model.User with
-    | None -> msgs
-    | _ -> msgs
+    msgs
 
 let view (model : Model) (dispatch : Msg -> unit) =
     let navbarFn = FilmClubNavBar.Component Server.api (fun () -> dispatch Logout) model.User
@@ -129,7 +147,7 @@ open Elmish.HMR
 Program.mkProgram init update view
 |> Program.withStream stream "msgs"
 |> Program.withSubscription authenticationSub
-|> Program.toNavigable FilmClubRouter.urlParser urlUpdate
+|> Program.toNavigable Routes.urlParser urlUpdate
 #if DEBUG
 |> Program.withConsoleTrace
 #endif

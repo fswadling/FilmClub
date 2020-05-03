@@ -2,6 +2,12 @@ module Utils
 open Fulma
 open Fable.React
 
+let mapAsync f op = async {
+        let! x    = op
+        let value = f x
+        return value
+    }
+
 let LoadingPage text =
     Hero.hero [ Hero.IsFullheightWithNavbar; Hero.Color IsBlack ] [
         Hero.body [] [

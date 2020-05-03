@@ -11,6 +11,7 @@ open Thoth.Elmish
 open Thoth.Elmish.FormBuilder
 open Thoth.Elmish.FormBuilder.BasicFields
 open Thoth.Json
+open Routes
 
 type private FormState =
     {
@@ -67,7 +68,7 @@ let private update (dispatchRoute: Route -> unit) (model : Model) (msg : MyMsg) 
     | SaveClub ->
         model
     | ClubSaved club ->
-        dispatchRoute (Club club.Id) |> ignore
+        dispatchRoute ((ClubRoute << ActualObject) club) |> ignore
         model
 
 let private getFrmState (json:string): FormState option =

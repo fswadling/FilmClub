@@ -32,8 +32,5 @@ type IFilmClubApi = {
     SaveNewClub: string -> ImageType option -> string -> Async<Club>
     }
 
-type Route =
-    | Home
-    | Club of int
-    | NewClub
+
 

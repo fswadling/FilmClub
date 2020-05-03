@@ -8,6 +8,7 @@ open Fable.React.Props
 open Fulma
 open FSharp.Control
 open Elmish.Navigation
+open Routes
 
 type private Model = {
    User: IAuth0UserProfile
@@ -36,7 +37,7 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
         |> AsyncRx.tag "msgs"
 
 let private renderClub (dispatchRoute: Route -> unit) (club: Club) =
-    button [ ClassName "card"; OnClick (fun e -> dispatchRoute (Club club.Id) |> ignore)  ] [
+    button [ ClassName "card"; OnClick (fun e -> dispatchRoute ((ClubRoute << ActualObject) club) |> ignore)  ] [
         yield! club.Image |> function |Some im -> [ img [ Class "card-image"; Src im.Image ] ] |None -> []
         div [ ClassName "card-title" ] [
             str club.Name

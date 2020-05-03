@@ -9,8 +9,9 @@
     <Compile Include="../Shared/Shared.fs" />
     <Compile Include="Version.fs" />
     <Compile Include="Auth0.fs" />
-    <Compile Include="ImageInput.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="Routes.fs" />
+    <Compile Include="ImageInput.fs" />
     <Compile Include="FilmClubClubPage.fs" />
     <Compile Include="FilmClubNewClubForm.fs" />
     <Compile Include="FilmClubHomePage.fs" />

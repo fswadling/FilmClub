@@ -6,6 +6,7 @@ open Shared
 open Auth0
 open FSharp.Control
 open Fulma
+open Routes
 
 type private Msg =
     LoadClub of Club
@@ -14,8 +15,8 @@ type private Model = {
     Club: Club option
 }
 
-let private init : Model =
-    { Club = None }
+let private init optClub : Model =
+    { Club = optClub }
 
 let private view (model : Model) (dispatch : Msg -> unit) =
     match model.Club with
@@ -28,16 +29,10 @@ let private update (currentModel : Model) (msg : Msg) : Model =
     | LoadClub club ->
         { Club = Some club }
 
-let private stream (api: IFilmClubApi) (clubId: int) (model: Model) msgs =
-    match model.Club with
-        | Some club -> msgs |> AsyncRx.tag "msgs"
-        | None ->
-            (api.GetClubById clubId)
-                |> AsyncRx.ofAsync
-                |> AsyncRx.map LoadClub
-                |> AsyncRx.tag "loadingClub"
+let private stream (model: Model) msgs =
+    msgs |> AsyncRx.tag "msgs"
 
-let Component (clubId: int) (api: IFilmClubApi) (dispatchRoute: Route -> unit) (user: IAuth0UserProfile) =
-    let model = init
-    let streamr = stream api clubId
-    Reaction.StreamComponent model view update streamr
+
+let Component (optClub: Club option) (api: IFilmClubApi) (dispatchRoute: Route -> unit) (user: IAuth0UserProfile) =
+    let model = init optClub
+    Reaction.StreamComponent model view update stream
