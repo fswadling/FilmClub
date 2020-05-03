@@ -10,7 +10,7 @@ open Shared
 let router: Parser<Route -> Route, _> =
     oneOf
         [ Elmish.UrlParser.map Home (Elmish.UrlParser.s "home")
-          Elmish.UrlParser.map Club (Elmish.UrlParser.s "club/" </> i32)
+          Elmish.UrlParser.map Club (Elmish.UrlParser.s "club" </> i32)
           Elmish.UrlParser.map NewClub (Elmish.UrlParser.s "new-club") ]
 
 let toPath route =
