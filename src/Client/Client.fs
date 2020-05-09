@@ -70,18 +70,6 @@ let routeIsSame route1 route2 =
     let path2 = Routes.toPath route2
     path1 = path2
 
-let urlUpdate (optRoute: Route option) (model: Model) : Model * Cmd<Msg> =
-    match optRoute with
-    | None ->
-        model, Cmd.none
-    | Some route ->
-        model.Route
-            |> Option.map (routeIsSame route)
-            |> Option.defaultValue false
-            |> function
-                | true -> model, Cmd.none
-                | false -> { model with Route = Some route }, Cmd.none
-
 module Server =
     open Shared
     open Fable.Remoting.Client
@@ -100,6 +88,23 @@ let init route : Model * Cmd<Msg> =
 
 let dispatchRoute dispatch route =
     dispatch (RouteCmd route)
+
+let urlUpdate (optRoute: Route option) (model: Model) : Model * Cmd<Msg> =
+    match optRoute with
+    | None ->
+        model, Cmd.none
+    | Some route ->
+        model.Route
+            |> Option.map (routeIsSame route)
+            |> Option.defaultValue false
+            |> function
+                | true -> model, Cmd.none
+                | false ->
+                    let cmd = Routes.getDataForRoute Server.api route
+                            |> Option.map (Utils.mapAsync RouteCmd)
+                            |> Option.map Cmd.OfAsync.result
+                            |> Option.defaultValue Cmd.none
+                    { model with Route = Some route }, cmd
 
 // The update function computes the next state of the application based on the current state and the incoming events/messages
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
