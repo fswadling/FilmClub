@@ -13,6 +13,7 @@
     <Compile Include="Routes.fs" />
     <Compile Include="ImageInput.fs" />
     <Compile Include="FilmClubClubPage.fs" />
+    <Compile Include="FilmClubClubAdmin.fs" />
     <Compile Include="FilmClubNewClubForm.fs" />
     <Compile Include="FilmClubHomePage.fs" />
     <Compile Include="FilmClubLandingPage.fs" />

@@ -68,7 +68,7 @@ let private update (dispatchRoute: Route -> unit) (model : Model) (msg : MyMsg) 
     | SaveClub ->
         model
     | ClubSaved club ->
-        dispatchRoute ((ClubRoute << ActualObject) club) |> ignore
+        dispatchRoute ((ClubRoute << (createClubRouteType ClubSubRoute.ClubMain) << ActualObject) club) |> ignore
         model
 
 let private getFrmState (json:string): FormState option =

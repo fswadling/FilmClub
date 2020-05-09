@@ -136,8 +136,8 @@ let stream model msgs =
     msgs
 
 let view (model : Model) (dispatch : Msg -> unit) =
-    let navbarFn = FilmClubNavBar.Component Server.api (fun () -> dispatch Logout) model.User model.Route
     let dispRoute = dispatchRoute dispatch
+    let navbarFn = FilmClubNavBar.Component Server.api (fun () -> dispatch Logout) dispRoute model.User model.Route
     div [] [
         navbarFn ()
         match model.User with

@@ -13,8 +13,10 @@ let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route:
     | Some Home -> FilmClubHomePage.Component api dispatchRoute user ()
     | Some NewClub -> FilmClubNewClubForm.Component api dispatchRoute user ()
     | Some (ClubRoute clubRouteArg) ->
-        let optClub = clubRouteArg |> toOption
-        FilmClubClubPage.Component optClub api dispatchRoute user ()
+        let optClub = clubRouteArg.EntityOrId |> toOption
+        match clubRouteArg.SubRoute with
+        | ClubMain -> FilmClubClubPage.Component optClub api dispatchRoute user ()
+        | ClubAdmin -> FilmClubClubAdminPage.Component optClub api dispatchRoute user ()
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 
 

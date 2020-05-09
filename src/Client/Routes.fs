@@ -14,26 +14,46 @@ let toOption<'a> (routeArg: EntityOrId<'a>) =
     | ActualObject obj -> Some obj
     | OnlyId id -> None
 
+type ClubSubRoute =
+    | ClubMain
+    | ClubAdmin
+
+type ClubRouteType = {
+    EntityOrId: EntityOrId<Club>
+    SubRoute: ClubSubRoute
+}
+
 type Route =
     | Home
-    | ClubRoute of EntityOrId<Club>
+    | ClubRoute of ClubRouteType
     | NewClub
+
+let createClubRouteType subRoute entityOrId: ClubRouteType = {
+    EntityOrId = entityOrId
+    SubRoute = subRoute
+}
 
 let router: Parser<Route -> Route, _> =
     oneOf
-        [ Elmish.UrlParser.map Home (Elmish.UrlParser.s "home")
-          Elmish.UrlParser.map (ClubRoute << OnlyId) (Elmish.UrlParser.s "club" </> i32)
-          Elmish.UrlParser.map NewClub (Elmish.UrlParser.s "new-club") ]
+        [ Elmish.UrlParser.map Home (s "home")
+          Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubAdmin) << OnlyId) (s "club" </> i32 </> s "admin")
+          Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubMain) << OnlyId) (s "club" </> i32)
+          Elmish.UrlParser.map NewClub (s "new-club") ]
 
 let getIdString (getId: 'a -> int) (routeVar: EntityOrId<'a>) =
     match routeVar with
     | OnlyId id -> id.ToString()
     | ActualObject obj -> (getId obj).ToString()
 
+let toClubPath clubSubRoute =
+    match clubSubRoute with
+    | ClubMain -> ""
+    | ClubAdmin -> "/admin"
+
 let toPath route =
     match route with
     | Home -> "/home"
-    | ClubRoute routeVar -> "/club/" + (getIdString (fun club -> club.Id) routeVar)
+    | ClubRoute routeVar -> "/club/" + (getIdString (fun club -> club.Id) routeVar.EntityOrId) + toClubPath routeVar.SubRoute
     | NewClub -> "/new-club"
 
 let private getDataForRouteVariable (getDataFromId: int -> Async<'a>) (routeVar: EntityOrId<'a>) =
@@ -53,9 +73,9 @@ let private mapGetDataBackToRoute<'a> (transFormToRoute: 'a -> Route) (getData: 
 let getDataForRoute (api: IFilmClubApi) (route: Route) =
     match route with
     | ClubRoute entityOrId ->
-        entityOrId
+        entityOrId.EntityOrId
             |> (getDataForRouteVariable api.GetClubById)
-            |> Option.map (mapGetDataBackToRoute ClubRoute)
+            |> Option.map (mapGetDataBackToRoute (ClubRoute << (createClubRouteType entityOrId.SubRoute)))
     | _ -> None
 
 let urlParser location = parsePath router location
