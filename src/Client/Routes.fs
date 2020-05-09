@@ -27,6 +27,7 @@ type Route =
     | Home
     | ClubRoute of ClubRouteType
     | NewClub
+    | NotAllowed
 
 let createClubRouteType subRoute entityOrId: ClubRouteType = {
     EntityOrId = entityOrId
@@ -36,6 +37,7 @@ let createClubRouteType subRoute entityOrId: ClubRouteType = {
 let router: Parser<Route -> Route, _> =
     oneOf
         [ Elmish.UrlParser.map Home (s "home")
+          Elmish.UrlParser.map NotAllowed (s "not-allowed")
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubAdmin) << OnlyId) (s "club" </> i32 </> s "admin")
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubMain) << OnlyId) (s "club" </> i32)
           Elmish.UrlParser.map NewClub (s "new-club") ]
@@ -55,6 +57,7 @@ let toPath route =
     | Home -> "/home"
     | ClubRoute routeVar -> "/club/" + (getIdString (fun club -> club.Id) routeVar.EntityOrId) + toClubPath routeVar.SubRoute
     | NewClub -> "/new-club"
+    | NotAllowed -> "/not-allowed"
 
 let private getDataForRouteVariable (getDataFromId: int -> Async<'a>) (routeVar: EntityOrId<'a>) =
     match routeVar with
