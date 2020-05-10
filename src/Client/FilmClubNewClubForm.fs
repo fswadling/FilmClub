@@ -101,7 +101,7 @@ let private getIsValid (model: Model) =
     let (state, isValid) = Form.validate model.FormConfig model.FormState
     isValid
 
-let private view (header: string) (model : Model) (dispatch : MyMsg -> unit)  =
+let private view (header: string) (saveBtnText: string) (model : Model) (dispatch : MyMsg -> unit)  =
     Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
         Content.content [ ] [
             h1 [] [ str header ]
@@ -112,8 +112,8 @@ let private view (header: string) (model : Model) (dispatch : MyMsg -> unit)  =
                     Dispatch = dispatch
                     ActionsArea = (div [] [])
                     Loader = Form.DefaultLoader } ]
-            Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveClub) ] [ str "Create Club" ] ] ]
+            Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveClub) ] [ str saveBtnText ] ] ]
 
-let Component (title: string) name image (save: string -> ImageType -> unit) =
+let Component (title: string) (saveBtnText: string) name image (save: string -> ImageType -> unit) =
     let model = init name image
-    Reaction.StreamComponent model (view title) (update save) stream
+    Reaction.StreamComponent model (view title saveBtnText) (update save) stream

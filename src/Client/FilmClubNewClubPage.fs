@@ -56,7 +56,7 @@ let private saveClub dispatch name image =
     dispatch (SaveClub { Name = name; Image = image})
 
 let private view (model : Model) (dispatch : MyMsg -> unit)  =
-    FilmClubNewClubForm.Component "Create new club" "" None (saveClub dispatch) ()
+    FilmClubNewClubForm.Component "Create new club" "Create new club" "" None (saveClub dispatch) ()
 
 let Component (api: IFilmClubApi) (dispatchRoute: Route -> unit) (user: IAuth0UserProfile) =
     let model = init

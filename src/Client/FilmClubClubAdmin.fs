@@ -27,7 +27,7 @@ let private view (model : Model) (dispatch : Msg -> unit) =
     match model.Club with
     | None -> Utils.LoadingPage "Loading club..."
     | Some club -> Content.content [ ] [
-            FilmClubNewClubForm.Component "Edit existing club" club.Name (Some club.Image) (updateClub dispatch club) ()]
+            FilmClubNewClubForm.Component "Edit existing club" "Update club" club.Name (Some club.Image) (updateClub dispatch club) ()]
 
 let private update (currentModel : Model) (msg : Msg) : Model =
     match msg with
