@@ -38,7 +38,7 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
 
 let private renderClub (dispatchRoute: Route -> unit) (club: Club) =
     button [ ClassName "card"; OnClick (fun e -> dispatchRoute ((ClubRoute << (createClubRouteType ClubSubRoute.ClubMain) << ActualObject) club) |> ignore)  ] [
-        yield! club.Image |> function |Some im -> [ img [ Class "card-image"; Src im.Image ] ] |None -> []
+        img [ Class "card-image"; Src club.Image.Image ]
         div [ ClassName "card-title" ] [
             str club.Name
         ]

@@ -12,7 +12,7 @@ type ImageType = {
 [<CLIMutable>]
 type Club = {
     Id: int
-    Image: ImageType option
+    Image: ImageType
     OwnerId: string
     MemberIds: string list
     Name: string
@@ -33,7 +33,8 @@ type IFilmClubApi = {
     GetFilms: unit -> Async<Film list>
     GetClubsForUser: string -> Async<Club list>
     GetClubById: string -> int -> Async<Response<Club>>
-    SaveNewClub: string -> ImageType option -> string -> Async<Club>
+    SaveNewClub: string -> ImageType -> string -> Async<Club>
+    UpdateClub: string -> Club -> Async<Response<Club>>
     }
 
 

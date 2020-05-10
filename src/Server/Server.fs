@@ -49,7 +49,7 @@ let getFilmApi (database: LiteDatabase) = {
        let list = clubs.Find (fun club -> List.contains userId club.MemberIds) |> Seq.toList
        return list
    }
-   SaveNewClub = fun (name: string) (image: ImageType option) (userId: string) -> async {
+   SaveNewClub = fun (name: string) (image: ImageType) (userId: string) -> async {
        let clubs = database.GetCollection<Club>("clubs")
        let club: Club = {
            Id = 0
@@ -60,6 +60,18 @@ let getFilmApi (database: LiteDatabase) = {
        }
        clubs.Insert(club) |> ignore
        return club
+   }
+   UpdateClub = fun (userId: string) (club: Club) -> async {
+       let clubs = database.GetCollection<Club>("clubs")
+       let clubsList = clubs.findMany <@ fun clubx -> clubx.Id = club.Id @> |> Seq.toList
+       return match clubsList with
+              | [] -> Invalid
+              | cluborig::_ ->
+                    match cluborig.OwnerId = userId && club.OwnerId = userId with
+                    | false -> Invalid
+                    | true -> match (clubs.Update club) with
+                                | false -> Invalid
+                                | true -> Valid club
    }
 }
 

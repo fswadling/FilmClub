@@ -11,7 +11,7 @@ open Routes
 let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route: Route option) (user: IAuth0UserProfile) =
     match route with
     | Some Home -> FilmClubHomePage.Component api dispatchRoute user ()
-    | Some NewClub -> FilmClubNewClubForm.Component api dispatchRoute user ()
+    | Some NewClub -> FilmClubNewClubPage.Component api dispatchRoute user ()
     | Some (ClubRoute clubRouteArg) ->
         let optClub = clubRouteArg.EntityOrId |> toOption
         match clubRouteArg.SubRoute with
