@@ -73,12 +73,26 @@ let private mapGetDataBackToRoute<'a> (transFormToRoute: 'a -> Route) (getData: 
         return transFormToRoute data
     }
 
-let getDataForRoute (api: IFilmClubApi) (route: Route) =
+let mapClubResponseToRoute (subRoute: ClubSubRoute) (response: Response<Club>) =
+    match response with
+    | Valid club ->
+        let entity = ActualObject club
+        ClubRoute (createClubRouteType subRoute entity)
+    | Invalid -> NotAllowed
+
+let getDataForRoute (api: IFilmClubApi) (userId: string) (route: Route) =
     match route with
-    | ClubRoute entityOrId ->
-        entityOrId.EntityOrId
-            |> (getDataForRouteVariable api.GetClubById)
-            |> Option.map (mapGetDataBackToRoute (ClubRoute << (createClubRouteType entityOrId.SubRoute)))
+    | ClubRoute clubRouteType ->
+        match clubRouteType.EntityOrId with
+        | ActualObject club ->
+            match club.OwnerId = userId with
+            | true -> None
+            | false -> Some (async { return NotAllowed })
+        | OnlyId id ->
+            let response = api.GetClubById userId id
+            response
+                |> Utils.mapAsync (mapClubResponseToRoute clubRouteType.SubRoute)
+                |> Some
     | _ -> None
 
 let urlParser location = parsePath router location

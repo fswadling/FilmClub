@@ -17,7 +17,7 @@ let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route:
         match clubRouteArg.SubRoute with
         | ClubMain -> FilmClubClubPage.Component optClub api dispatchRoute user ()
         | ClubAdmin -> FilmClubClubAdminPage.Component optClub api dispatchRoute user ()
-    | Some NotAllowed -> div [] [ Fable.React.Helpers.str "Not allowed" ]
+    | Some NotAllowed -> Utils.MessagePage "Not allowed"
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 
 

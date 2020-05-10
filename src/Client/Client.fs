@@ -100,7 +100,9 @@ let urlUpdate (optRoute: Route option) (model: Model) : Model * Cmd<Msg> =
             |> function
                 | true -> model, Cmd.none
                 | false ->
-                    let cmd = Routes.getDataForRoute Server.api route
+                    let cmd =
+                        model.User
+                            |> Option.bind (fun user -> Routes.getDataForRoute Server.api user.sub route)
                             |> Option.map (Utils.mapAsync RouteCmd)
                             |> Option.map Cmd.OfAsync.result
                             |> Option.defaultValue Cmd.none
@@ -120,12 +122,13 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | UserProfileLoaded userProfile ->
         let routeCmd =
             model.Route
-            |> Option.bind (Routes.getDataForRoute Server.api)
-            |> Option.map (Utils.mapAsync RouteCmd)
-            |> (function | Some asyn -> Cmd.OfAsync.result asyn | None -> Cmd.none)
+                |> Option.bind (fun route -> Routes.getDataForRoute Server.api userProfile.sub route)
+                |> Option.map (Utils.mapAsync RouteCmd)
+                |> (function | Some asyn -> Cmd.OfAsync.result asyn | None -> Cmd.none)
         { model with User = Some userProfile }, routeCmd
     | RouteCmd route ->
-        Routes.getDataForRoute Server.api route
+        model.User
+            |> Option.bind (fun user -> Routes.getDataForRoute Server.api user.sub route)
             |> Option.map (Utils.mapAsync RouteCmd)
             |> Option.map Cmd.OfAsync.result
             |> function

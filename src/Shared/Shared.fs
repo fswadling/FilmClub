@@ -23,12 +23,16 @@ module Route =
     let builder typeName methodName =
         sprintf "/api/%s/%s" typeName methodName
 
+type Response<'a> =
+    | Valid of 'a
+    | Invalid
+
 /// A type that specifies the communication protocol between client and server
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
     GetFilms: unit -> Async<Film list>
     GetClubsForUser: string -> Async<Club list>
-    GetClubById: int -> Async<Club>
+    GetClubById: string -> int -> Async<Response<Club>>
     SaveNewClub: string -> ImageType option -> string -> Async<Club>
     }
 

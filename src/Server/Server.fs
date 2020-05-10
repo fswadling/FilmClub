@@ -14,6 +14,7 @@ open Microsoft.WindowsAzure.Storage
 
 open LiteDB
 open LiteDB.FSharp
+open LiteDB.FSharp.Extensions
 
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 
@@ -32,10 +33,16 @@ let getFilmApi (database: LiteDatabase) = {
         { Name = "The Thing"};
         { Name = "Your Name"}
    ]}
-   GetClubById = fun (id: int) -> async {
+   GetClubById = fun (userId: string) (clubId: int) -> async {
        let clubs = database.GetCollection<Club>("clubs")
-       let bsonId = BsonValue(id)
-       return clubs.FindById(bsonId)
+       let clubs = clubs.findMany <@ fun club -> club.Id = clubId @> |> Seq.toList
+       return match clubs with
+              | [] -> Invalid
+              | club::tail ->
+                    let clubHasId = List.contains userId club.MemberIds
+                    match clubHasId with
+                        | true -> Valid club
+                        | false -> Invalid
    }
    GetClubsForUser = fun userId -> async {
        let clubs = database.GetCollection<Club>("clubs")
