@@ -12,10 +12,12 @@
     <Compile Include="Utils.fs" />
     <Compile Include="Routes.fs" />
     <Compile Include="ImageInput.fs" />
-    <Compile Include="FilmClubClubPage.fs" />
     <Compile Include="FilmClubNewClubForm.fs" />
+    <Compile Include="FilmClubJoinClubForm.fs" />
     <Compile Include="FilmClubClubAdmin.fs" />
+    <Compile Include="FilmClubClubPage.fs" />
     <Compile Include="FilmClubNewClubPage.fs" />
+    <Compile Include="FilmClubJoinClubPage.fs" />
     <Compile Include="FilmClubHomePage.fs" />
     <Compile Include="FilmClubLandingPage.fs" />
     <Compile Include="FilmClubNavBar.fs" />

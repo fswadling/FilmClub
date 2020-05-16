@@ -12,6 +12,7 @@ let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route:
     match route with
     | Some Home -> FilmClubHomePage.Component api dispatchRoute user ()
     | Some NewClub -> FilmClubNewClubPage.Component api dispatchRoute user ()
+    | Some JoinClub -> FilmClubJoinClubPage.Component api dispatchRoute user ()
     | Some (ClubRoute clubRouteArg) ->
         let optClub = clubRouteArg.EntityOrId |> toOption
         match clubRouteArg.SubRoute with

@@ -56,7 +56,7 @@ let private view (dispatchRoute: Route -> unit) (model : Model) (dispatch : Msg 
         Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
             Content.content [ ] [
                 Button.button [ Button.CustomClass "home-btn"; Button.OnClick (fun _ -> dispatchRoute NewClub) ] [ str "Create new club" ]
-                Button.button [ Button.CustomClass "home-btn" ] [ str "Join existing club" ] ] ]
+                Button.button [ Button.CustomClass "home-btn"; Button.OnClick (fun _ -> dispatchRoute JoinClub) ] [ str "Join existing club" ] ] ]
         renderClubs dispatchRoute clubs
     ]
 

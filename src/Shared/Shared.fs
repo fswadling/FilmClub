@@ -18,6 +18,19 @@ type Club = {
     Name: string
 }
 
+type ClubJoinRequestStatus =
+    | Pending
+    | Accepted
+    | Denied
+
+[<CLIMutable>]
+type ClubJoinRequest = {
+    Id: int
+    UserId: string
+    ClubId: int
+    RequestStatus: ClubJoinRequestStatus
+}
+
 module Route =
     /// Defines how routes are generated on server and mapped from client
     let builder typeName methodName =
@@ -35,6 +48,7 @@ type IFilmClubApi = {
     GetClubById: string -> int -> Async<Response<Club>>
     SaveNewClub: string -> ImageType -> string -> Async<Club>
     UpdateClub: string -> Club -> Async<Response<Club>>
+    RequestJoinClub: string -> int -> Async<Response<ClubJoinRequest>>
     }
 
 

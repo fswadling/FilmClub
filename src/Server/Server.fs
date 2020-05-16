@@ -73,6 +73,29 @@ let getFilmApi (database: LiteDatabase) = {
                                 | false -> Invalid
                                 | true -> Valid club
    }
+   RequestJoinClub = fun (userId: string) (clubId: int) -> async {
+       let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
+       let clubs = database.GetCollection<Club>("clubs")
+       let clubsList = clubs.findMany <@ fun clubx -> clubx.Id = clubId @> |> Seq.toList
+       return match clubsList with
+                | [] -> Invalid
+                | club::_ ->
+                    match (List.contains userId club.MemberIds) with
+                    | true -> Invalid
+                    | false ->
+                        let existingRequests = requests.findMany <@ fun req -> req.ClubId = clubId && req.UserId = userId @> |> Seq.toList
+                        match existingRequests with
+                        | req::_ -> Invalid
+                        | [] ->
+                            let request: ClubJoinRequest = {
+                                Id = 0
+                                UserId = userId
+                                ClubId = clubId
+                                RequestStatus = ClubJoinRequestStatus.Pending
+                            }
+                            requests.Insert(request) |> ignore
+                            Valid request
+   }
 }
 
 let webApp =

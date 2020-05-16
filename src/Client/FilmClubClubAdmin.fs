@@ -27,7 +27,12 @@ let private view (model : Model) (dispatch : Msg -> unit) =
     match model.Club with
     | None -> Utils.LoadingPage "Loading club..."
     | Some club -> Content.content [ ] [
-            FilmClubNewClubForm.Component "Edit existing club" "Update club" club.Name (Some club.Image) (updateClub dispatch club) ()]
+            FilmClubNewClubForm.Component "Edit club" "Update club" club.Name (Some club.Image) (updateClub dispatch club) ()
+            Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
+                Content.content [] [
+                    br []
+                    h1 [ ] [ str "Club Id "]
+                    p [] [ str ("The club id is " + club.Id.ToString() + ". Share this with your friends to let them join your club!")] ] ] ]
 
 let private update (currentModel : Model) (msg : Msg) : Model =
     match msg with
