@@ -49,6 +49,7 @@ type IFilmClubApi = {
     SaveNewClub: string -> ImageType -> string -> Async<Club>
     UpdateClub: string -> Club -> Async<Response<Club>>
     RequestJoinClub: string -> int -> Async<Response<ClubJoinRequest>>
+    GetJoinClubRequestsForUser: string -> Async<ClubJoinRequest list>
     }
 
 

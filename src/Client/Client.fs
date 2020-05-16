@@ -19,7 +19,7 @@ let auth0Config: AuthConfig = {
     allowedConnections = [|"Username-Password-Authentication"|]
     autoclose = true
     auth = {
-        redirect = false
+        redirect = true
         redirectUrl = "http://localhost:8080"
         responseType = "token"
     }

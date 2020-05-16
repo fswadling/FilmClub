@@ -51,9 +51,11 @@ let private stream (api: IFilmClubApi) (model: Model) (msgs: IAsyncObservable<My
         |> AsyncRx.merge msgs
         |> AsyncRx.tag "msgs"
 
-let private view (user: IAuth0UserProfile) (model : Model) (dispatch : MyMsg -> unit)  =
-    FilmClubJoinClubForm.Component (fun id -> dispatch (RequestJoinClub { UserId = user.sub; ClubId = id})) ()
+let private view (user: IAuth0UserProfile) (api: IFilmClubApi) (model : Model) (dispatch : MyMsg -> unit)  =
+    div [] [
+        FilmClubJoinClubForm.Component (fun id -> dispatch (RequestJoinClub { UserId = user.sub; ClubId = id})) ()
+        FilmClubPendingJoinClubRequests.Component api user () ]
 
 let Component (api: IFilmClubApi) (dispatchRoute: Route -> unit) (user: IAuth0UserProfile) =
     let model = init
-    Reaction.StreamComponent model (view user) (update dispatchRoute) (stream api)
+    Reaction.StreamComponent model (view user api) (update dispatchRoute) (stream api)

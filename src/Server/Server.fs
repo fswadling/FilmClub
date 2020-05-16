@@ -96,6 +96,10 @@ let getFilmApi (database: LiteDatabase) = {
                             requests.Insert(request) |> ignore
                             Valid request
    }
+   GetJoinClubRequestsForUser = fun (userId: string) -> async {
+       let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
+       return requests.findMany <@ fun req -> req.UserId = userId @> |> Seq.toList
+   }
 }
 
 let webApp =

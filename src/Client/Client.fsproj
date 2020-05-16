@@ -17,6 +17,7 @@
     <Compile Include="FilmClubClubAdmin.fs" />
     <Compile Include="FilmClubClubPage.fs" />
     <Compile Include="FilmClubNewClubPage.fs" />
+    <Compile Include="FilmClubPendingJoinClubRequests.fs" />
     <Compile Include="FilmClubJoinClubPage.fs" />
     <Compile Include="FilmClubHomePage.fs" />
     <Compile Include="FilmClubLandingPage.fs" />
