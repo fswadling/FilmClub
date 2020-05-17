@@ -27,6 +27,7 @@ type ClubJoinRequestStatus =
 type ClubJoinRequest = {
     Id: int
     UserId: string
+    UserName: string
     ClubId: int
     RequestStatus: ClubJoinRequestStatus
 }
@@ -48,8 +49,11 @@ type IFilmClubApi = {
     GetClubById: string -> int -> Async<Response<Club>>
     SaveNewClub: string -> ImageType -> string -> Async<Club>
     UpdateClub: string -> Club -> Async<Response<Club>>
-    RequestJoinClub: string -> int -> Async<Response<ClubJoinRequest>>
+    RequestJoinClub: string -> string -> int -> Async<Response<ClubJoinRequest>>
     GetJoinClubRequestsForUser: string -> Async<ClubJoinRequest list>
+    GetJoinClubRequestsForClub: int -> Async<ClubJoinRequest list>
+    AllowRequest: int -> Async<Response<ClubJoinRequest>>
+    DenyRequest: int -> Async<Response<ClubJoinRequest>>
     }
 
 

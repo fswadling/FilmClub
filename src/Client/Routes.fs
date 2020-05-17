@@ -88,7 +88,7 @@ let getDataForRoute (api: IFilmClubApi) (userId: string) (route: Route) =
     | ClubRoute clubRouteType ->
         match clubRouteType.EntityOrId with
         | ActualObject club ->
-            match club.OwnerId = userId with
+            match (List.contains userId club.MemberIds) with
             | true -> None
             | false -> Some (async { return NotAllowed })
         | OnlyId id ->

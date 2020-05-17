@@ -23,16 +23,17 @@ let private updateClub dispatch (club: Club) name image =
     let newClub = { club with Name = name; Image = image}
     dispatch (UpdateClub newClub)
 
-let private view (model : Model) (dispatch : Msg -> unit) =
+let private view api (model : Model) (dispatch : Msg -> unit) =
     match model.Club with
     | None -> Utils.LoadingPage "Loading club..."
     | Some club -> Content.content [ ] [
-            FilmClubNewClubForm.Component "Edit club" "Update club" club.Name (Some club.Image) (updateClub dispatch club) ()
             Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
                 Content.content [] [
-                    br []
-                    h1 [ ] [ str "Club Id "]
-                    p [] [ str ("The club id is " + club.Id.ToString() + ". Share this with your friends to let them join your club!")] ] ] ]
+                    p [] [ str ("The club id is " + club.Id.ToString() + ". Share this with your friends to let them join your club!")] ] ]
+            br []
+            FilmClubNewClubForm.Component "Edit club" "Update club" club.Name (Some club.Image) (updateClub dispatch club) ()
+            br []
+            FilmClubPendingJoinRequests.Component club api () ]
 
 let private update (currentModel : Model) (msg : Msg) : Model =
     match msg with
@@ -59,4 +60,4 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
 
 let Component (optClub: Club option) (api: IFilmClubApi) (dispatchRoute: Route -> unit) (user: IAuth0UserProfile) =
     let model = init optClub
-    Reaction.StreamComponent model view update (stream api user)
+    Reaction.StreamComponent model (view api) update (stream api user)

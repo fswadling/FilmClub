@@ -37,7 +37,7 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
         |> AsyncRx.tag "msgs"
 
 let private renderClub (dispatchRoute: Route -> unit) (club: Club) =
-    button [ ClassName "card"; OnClick (fun e -> dispatchRoute ((ClubRoute << (createClubRouteType ClubSubRoute.ClubMain) << ActualObject) club) |> ignore)  ] [
+    button [ ClassName "my-card"; OnClick (fun e -> dispatchRoute ((ClubRoute << (createClubRouteType ClubSubRoute.ClubMain) << ActualObject) club) |> ignore)  ] [
         img [ Class "card-image"; Src club.Image.Image ]
         div [ ClassName "card-title" ] [
             str club.Name

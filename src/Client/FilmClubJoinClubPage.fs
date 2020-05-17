@@ -6,6 +6,7 @@ open Fable.React
 open Fable.Reaction
 open Fulma
 open FSharp.Control
+open Utils
 
 open Thoth.Elmish
 open Thoth.Elmish.FormBuilder
@@ -20,6 +21,7 @@ type private Model = {
 
 type private JoinClubArgs = {
     UserId: string
+    UserName: string
     ClubId: int
 }
 
@@ -45,7 +47,7 @@ let private update (dispatchRoute: Route -> unit) (model : Model) (msg : MyMsg) 
         { model with Requests = Some requests }
 
 let private makeCall (api: IFilmClubApi) (args: JoinClubArgs) =
-    AsyncRx.ofAsync (api.RequestJoinClub args.UserId args.ClubId)
+    AsyncRx.ofAsync (api.RequestJoinClub args.UserId args.UserName args.ClubId)
 
 let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<MyMsg>) =
     match model.Requests with
@@ -65,12 +67,6 @@ let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) 
             |> AsyncRx.merge msgs
             |> AsyncRx.tag "msgs"
 
-let private getRequestStatusText (requestStatus: ClubJoinRequestStatus) =
-    match requestStatus with
-    | Pending -> Text.div [ Modifiers [ Modifier.TextColor IsGrey ] ] [ str "Pending" ]
-    | Accepted -> Text.div [ Modifiers [ Modifier.TextColor IsSuccess ] ] [ str "Accepted" ]
-    | Denied -> Text.div [ Modifiers [ Modifier.TextColor IsDanger ] ] [ str "Denied" ]
-
 let private createRequestRow (request: ClubJoinRequest) =
     Content.content [ Content.Props [ Props.ClassName "request" ] ] [
         p [] [ str ("Request to join club with id: " + request.ClubId.ToString())]
@@ -78,7 +74,7 @@ let private createRequestRow (request: ClubJoinRequest) =
 
 let private view (user: IAuth0UserProfile) (api: IFilmClubApi) (model : Model) (dispatch : MyMsg -> unit)  =
     div [] [
-        FilmClubJoinClubForm.Component (fun id -> dispatch (RequestJoinClub { UserId = user.sub; ClubId = id})) ()
+        FilmClubJoinClubForm.Component (fun id -> dispatch (RequestJoinClub { UserId = user.sub; UserName = user.name; ClubId = id})) ()
         Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
         yield! match model.Requests with
                 | Some requests ->
