@@ -129,9 +129,16 @@ let getFilmApi (database: LiteDatabase) = {
        return match requestlist with
                 | [] -> Invalid
                 | request::tail ->
-                    let newRequest = { request with RequestStatus = ClubJoinRequestStatus.Denied }
-                    requests.Update newRequest |> ignore
-                    Valid newRequest
+                    let clubs = database.GetCollection<Club>("clubs")
+                    let clubsList = clubs.findMany <@ fun club -> club.Id = request.ClubId @> |> Seq.toList
+                    match clubsList with
+                    | [] -> Invalid
+                    | club::tail ->
+                        let newRequest = { request with RequestStatus = ClubJoinRequestStatus.Denied }
+                        let newClub = { club with MemberIds = club.MemberIds |> List.filter (fun id -> id <> request.UserId) }
+                        clubs.Update newClub |> ignore
+                        requests.Update newRequest |> ignore
+                        Valid newRequest
 
    }
 }
