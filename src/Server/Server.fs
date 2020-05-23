@@ -29,25 +29,43 @@ let port =
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
 let getFilmApi (database: LiteDatabase) = {
-   GetFilms = fun () -> async { return [
-        { Name = "The Thing"};
-        { Name = "Your Name"}
-   ]}
+   GetFilms = fun (clubId: int) -> async {
+       let films = database.GetCollection<Film>("films")
+       let clubFilms = films.findMany <@ fun film -> film.ClubId = clubId @> |> Seq.toList
+       return clubFilms
+   }
+   AddNewFilm = fun (filmName: string) (clubId: int) (userId: string) -> async {
+       let film: Film = {
+           Id = 0
+           ClubId = clubId
+           UserId = userId
+           Name = filmName
+       }
+       let films = database.GetCollection<Film>("films")
+       films.Insert(film) |> ignore
+       return film
+   }
+   UpdateFilm = fun (userId: string) (film: Film) -> async {
+       let films = database.GetCollection<Film>("films")
+       return films.findMany <@ fun x -> x.Id = film.Id @>
+            |> Seq.tryExactlyOne
+            |> Option.filter (fun f -> f.UserId = userId && film.UserId = userId)
+            |> Option.filter films.Update
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
+   }
    GetClubById = fun (userId: string) (clubId: int) -> async {
        let clubs = database.GetCollection<Club>("clubs")
-       let clubs = clubs.findMany <@ fun club -> club.Id = clubId @> |> Seq.toList
-       return match clubs with
-              | [] -> Invalid
-              | club::tail ->
-                    let clubHasId = List.contains userId club.MemberIds
-                    match clubHasId with
-                        | true -> Valid club
-                        | false -> Invalid
+       return clubs.findMany <@ fun club -> club.Id = clubId @>
+            |> Seq.tryExactlyOne
+            |> Option.filter (fun c -> List.contains userId c.MemberIds)
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
    }
    GetClubsForUser = fun userId -> async {
        let clubs = database.GetCollection<Club>("clubs")
-       let list = clubs.Find (fun club -> List.contains userId club.MemberIds) |> Seq.toList
-       return list
+       return clubs.Find (fun club -> List.contains userId club.MemberIds)
+            |> Seq.toList
    }
    SaveNewClub = fun (name: string) (image: ImageType) (userId: string) -> async {
        let clubs = database.GetCollection<Club>("clubs")
@@ -63,39 +81,32 @@ let getFilmApi (database: LiteDatabase) = {
    }
    UpdateClub = fun (userId: string) (club: Club) -> async {
        let clubs = database.GetCollection<Club>("clubs")
-       let clubsList = clubs.findMany <@ fun clubx -> clubx.Id = club.Id @> |> Seq.toList
-       return match clubsList with
-              | [] -> Invalid
-              | cluborig::_ ->
-                    match cluborig.OwnerId = userId && club.OwnerId = userId with
-                    | false -> Invalid
-                    | true -> match (clubs.Update club) with
-                                | false -> Invalid
-                                | true -> Valid club
+       return clubs.findMany <@ fun clubx -> clubx.Id = club.Id @>
+            |> Seq.tryExactlyOne
+            |> Option.filter (fun c -> c.OwnerId = userId && club.OwnerId = userId)
+            |> Option.filter clubs.Update
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
    }
    RequestJoinClub = fun (userId: string) (userName: string) (clubId: int) -> async {
        let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
        let clubs = database.GetCollection<Club>("clubs")
-       let clubsList = clubs.findMany <@ fun clubx -> clubx.Id = clubId @> |> Seq.toList
-       return match clubsList with
-                | [] -> Invalid
-                | club::_ ->
-                    match (List.contains userId club.MemberIds) with
-                    | true -> Invalid
-                    | false ->
-                        let existingRequests = requests.findMany <@ fun req -> req.ClubId = clubId && req.UserId = userId @> |> Seq.toList
-                        match existingRequests with
-                        | req::_ -> Invalid
-                        | [] ->
-                            let request: ClubJoinRequest = {
-                                Id = 0
-                                UserId = userId
-                                UserName = userName
-                                ClubId = clubId
-                                RequestStatus = ClubJoinRequestStatus.Pending
-                            }
-                            requests.Insert(request) |> ignore
-                            Valid request
+       return clubs.findMany <@ fun clubx -> clubx.Id = clubId @>
+            |> Seq.tryExactlyOne
+            |> Option.filter (fun c -> List.contains userId c.MemberIds)
+            |> Option.filter (fun c -> requests.findMany <@ fun req -> req.ClubId = clubId && req.UserId = userId @> |> Seq.isEmpty)
+            |> Option.map (fun c ->
+                let request: ClubJoinRequest = {
+                    Id = 0
+                    UserId = userId
+                    UserName = userName
+                    ClubId = clubId
+                    RequestStatus = ClubJoinRequestStatus.Pending
+                }
+                requests.Insert(request) |> ignore
+                request)
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
    }
    GetJoinClubRequestsForUser = fun (userId: string) -> async {
        let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
@@ -107,39 +118,27 @@ let getFilmApi (database: LiteDatabase) = {
    }
    AllowRequest = fun (requestId: int) -> async {
        let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
-       let requestlist = requests.findMany <@ fun req -> req.Id = requestId @> |> Seq.toList
-       return match requestlist with
-                | [] -> Invalid
-                | request::tail ->
-                    let clubs = database.GetCollection<Club>("clubs")
-                    let clubsList = clubs.findMany <@ fun club -> club.Id = request.ClubId @> |> Seq.toList
-                    match clubsList with
-                    | [] -> Invalid
-                    | club::tail ->
-                        let newRequest = { request with RequestStatus = ClubJoinRequestStatus.Accepted }
-                        requests.Update newRequest |> ignore
-                        let newClub = { club with MemberIds = request.UserId::club.MemberIds }
-                        clubs.Update newClub |> ignore
-                        Valid newRequest
-
+       let clubs = database.GetCollection<Club>("clubs")
+       return requests.findMany <@ fun req -> req.Id = requestId @>
+            |> Seq.tryExactlyOne
+            |> Option.bind (fun req -> clubs.findMany <@ fun club -> club.Id = req.ClubId @> |> Seq.tryExactlyOne |> Option.map (fun c -> req, c))
+            |> Option.filter (fun (req, club) -> requests.Update { req with RequestStatus = ClubJoinRequestStatus.Accepted })
+            |> Option.filter (fun (req, club) -> clubs.Update { club with MemberIds = req.UserId::club.MemberIds })
+            |> Option.map (fun (req, club) -> req)
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
    }
    DenyRequest = fun (requestId: int) -> async {
        let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
-       let requestlist = requests.findMany <@ fun req -> req.Id = requestId @> |> Seq.toList
-       return match requestlist with
-                | [] -> Invalid
-                | request::tail ->
-                    let clubs = database.GetCollection<Club>("clubs")
-                    let clubsList = clubs.findMany <@ fun club -> club.Id = request.ClubId @> |> Seq.toList
-                    match clubsList with
-                    | [] -> Invalid
-                    | club::tail ->
-                        let newRequest = { request with RequestStatus = ClubJoinRequestStatus.Denied }
-                        let newClub = { club with MemberIds = club.MemberIds |> List.filter (fun id -> id <> request.UserId) }
-                        clubs.Update newClub |> ignore
-                        requests.Update newRequest |> ignore
-                        Valid newRequest
-
+       let clubs = database.GetCollection<Club>("clubs")
+       return requests.findMany <@ fun req -> req.Id = requestId @>
+            |> Seq.tryExactlyOne
+            |> Option.bind (fun req -> clubs.findMany <@ fun club -> club.Id = req.ClubId @> |> Seq.tryExactlyOne |> Option.map (fun c -> c, req))
+            |> Option.filter (fun (club, req) -> requests.Update { req with RequestStatus = ClubJoinRequestStatus.Denied })
+            |> Option.filter (fun (club, req) -> clubs.Update { club with MemberIds = club.MemberIds |> List.filter (fun id -> id <> req.UserId) } )
+            |> Option.map (fun (club, req) -> req)
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
    }
 }
 

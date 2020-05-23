@@ -1,6 +1,10 @@
 namespace Shared
 
+[<CLIMutable>]
 type Film = {
+    Id: int
+    ClubId: int
+    UserId: string
     Name: string
 }
 
@@ -44,7 +48,9 @@ type Response<'a> =
 /// A type that specifies the communication protocol between client and server
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
-    GetFilms: unit -> Async<Film list>
+    GetFilms: int -> Async<Film list>
+    AddNewFilm: string -> int -> string -> Async<Film>
+    UpdateFilm: string -> Film -> Async<Response<Film>>
     GetClubsForUser: string -> Async<Club list>
     GetClubById: string -> int -> Async<Response<Club>>
     SaveNewClub: string -> ImageType -> string -> Async<Club>
