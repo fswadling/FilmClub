@@ -17,6 +17,7 @@ let toOption<'a> (routeArg: EntityOrId<'a>) =
 type ClubSubRoute =
     | ClubMain
     | ClubAdmin
+    | ClubAddNewFilm
 
 type ClubRouteType = {
     EntityOrId: EntityOrId<Club>
@@ -40,6 +41,7 @@ let router: Parser<Route -> Route, _> =
         [ Elmish.UrlParser.map Home (s "home")
           Elmish.UrlParser.map NotAllowed (s "not-allowed")
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubAdmin) << OnlyId) (s "club" </> i32 </> s "admin")
+          Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubAddNewFilm) << OnlyId) (s "club"</> i32 </> s "add-film")
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubMain) << OnlyId) (s "club" </> i32)
           Elmish.UrlParser.map NewClub (s "new-club")
           Elmish.UrlParser.map JoinClub (s "join-club")]
@@ -53,6 +55,7 @@ let toClubPath clubSubRoute =
     match clubSubRoute with
     | ClubMain -> ""
     | ClubAdmin -> "/admin"
+    | ClubAddNewFilm -> "/add-film"
 
 let toPath route =
     match route with

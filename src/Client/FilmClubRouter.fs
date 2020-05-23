@@ -18,6 +18,10 @@ let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route:
         match clubRouteArg.SubRoute with
         | ClubMain -> FilmClubClubPage.Component optClub api dispatchRoute user ()
         | ClubAdmin -> FilmClubClubAdminPage.Component optClub api dispatchRoute user ()
+        | ClubAddNewFilm ->
+            optClub
+                |> Option.map (fun c -> FilmClubAddNewFilmPage.Component c api dispatchRoute user ())
+                |> Option.defaultValue (Utils.LoadingPage "Loading Club...")
     | Some NotAllowed -> Utils.MessagePage "Not allowed"
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 

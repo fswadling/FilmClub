@@ -1,16 +1,17 @@
 namespace Shared
 
+type ImageType = {
+    Name: string
+    Image: string
+}
+
 [<CLIMutable>]
 type Film = {
     Id: int
     ClubId: int
     UserId: string
+    Image: ImageType
     Name: string
-}
-
-type ImageType = {
-    Name: string
-    Image: string
 }
 
 [<CLIMutable>]
@@ -49,7 +50,7 @@ type Response<'a> =
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
     GetFilms: int -> Async<Film list>
-    AddNewFilm: string -> int -> string -> Async<Film>
+    AddNewFilm: string -> ImageType -> int -> string -> Async<Film>
     UpdateFilm: string -> Film -> Async<Response<Film>>
     GetClubsForUser: string -> Async<Club list>
     GetClubById: string -> int -> Async<Response<Club>>

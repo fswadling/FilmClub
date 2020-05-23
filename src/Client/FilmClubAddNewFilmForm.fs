@@ -1,4 +1,4 @@
-module FilmClubNewClubForm
+module FilmClubAddNewFilmForm
 
 open Auth0
 open Shared
@@ -26,23 +26,23 @@ type private FormState =
                 Image = get.Required.Field "image" CustomFields.ImageInput.decoder
                 })
 
-type MyMsg =
+type private MyMsg =
     | OnFormMsg of FormBuilder.Types.Msg
-    | SaveClub
+    | SaveFilm
 
 type private Model = {
    FormState : FormBuilder.Types.State
    FormConfig: FormBuilder.Types.Config<MyMsg>
 }
 
-let initForm name image =
+let private initForm name image =
     Form<MyMsg>
         .Create(OnFormMsg)
         .AddField(
             BasicInput
                 .Create("name")
                 .WithLabel("Name")
-                .WithPlaceholder("Example club name")
+                .WithPlaceholder("Example film name")
                 .WithValue(name)
                 .IsRequired()
                 .WithDefaultView()
@@ -50,8 +50,8 @@ let initForm name image =
         .AddField(
             CustomFields.BasicImageInput
                 .Create("image")
-                .WithLabel("Club image")
-                .WithPlaceholder("Choose an image for the club")
+                .WithLabel("Film image")
+                .WithPlaceholder("Choose an image for the film")
                 .WithValue(image)
                 .IsRequired()
                 .WithDefaultView()
@@ -74,7 +74,7 @@ let private update (save: string -> ImageType -> unit) (model : Model) (msg : My
     | OnFormMsg msg ->
         let (formState, formCmd) = Form.update model.FormConfig msg model.FormState
         { model with FormState = formState }
-    | SaveClub ->
+    | SaveFilm ->
         let json = Form.toJson model.FormConfig model.FormState
         let formState = getFrmState json
         formState
@@ -82,9 +82,6 @@ let private update (save: string -> ImageType -> unit) (model : Model) (msg : My
             |> Option.map (fun (name, image) -> save name image)
             |> ignore
         model
-
-let private makeCall api state sub =
-    AsyncRx.ofAsync (api.SaveNewClub state.Name state.Image.Value sub)
 
 let private stream (model: Model) (msgs: IAsyncObservable<MyMsg>) =
     msgs |> AsyncRx.tag "msgs"
@@ -109,7 +106,7 @@ let private view (header: string) (saveBtnText: string) (model : Model) (dispatc
                     Dispatch = dispatch
                     ActionsArea = (div [] [])
                     Loader = Form.DefaultLoader } ]
-            Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveClub) ] [ str saveBtnText ] ] ]
+            Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveFilm) ] [ str saveBtnText ] ] ]
 
 let Component (title: string) (saveBtnText: string) name image (save: string -> ImageType -> unit) =
     let model = init name image

@@ -34,12 +34,13 @@ let getFilmApi (database: LiteDatabase) = {
        let clubFilms = films.findMany <@ fun film -> film.ClubId = clubId @> |> Seq.toList
        return clubFilms
    }
-   AddNewFilm = fun (filmName: string) (clubId: int) (userId: string) -> async {
+   AddNewFilm = fun (filmName: string) (image: ImageType) (clubId: int) (userId: string) -> async {
        let film: Film = {
            Id = 0
            ClubId = clubId
            UserId = userId
            Name = filmName
+           Image = image
        }
        let films = database.GetCollection<Film>("films")
        films.Insert(film) |> ignore
