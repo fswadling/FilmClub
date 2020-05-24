@@ -31,17 +31,24 @@ let port =
 let getFilmApi (database: LiteDatabase) = {
    UpdateUser = fun (sub: string) (name: string) -> async {
        let users = database.GetCollection<User>("users")
-       let user: User = {
-           Id = 0
-           Name = name
-           Sub = sub
-       }
-       users.Upsert user |> ignore
-       return user
+       let userOpt = users.findMany <@ fun user -> user.Sub = sub @> |> Seq.tryExactlyOne
+       return match userOpt with
+            | Some user ->
+                let updatedUser = { user with Name = name }
+                users.Update updatedUser |> ignore
+                updatedUser
+            | None ->
+                let user: User = {
+                    Id = 0
+                    Name = name
+                    Sub = sub
+                }
+                users.Insert user |> ignore
+                user
    }
    GetUsers = fun (subs: string list) -> async {
        let users = database.GetCollection<User>("users")
-       return users.findMany <@ fun user -> List.contains user.Sub subs @> |> Seq.toList
+       return users.Find (fun user -> List.contains user.Sub subs) |> Seq.toList
    }
    GetFilms = fun (clubId: int) -> async {
        let films = database.GetCollection<Film>("films")
@@ -109,7 +116,7 @@ let getFilmApi (database: LiteDatabase) = {
        let clubs = database.GetCollection<Club>("clubs")
        return clubs.findMany <@ fun clubx -> clubx.Id = clubId @>
             |> Seq.tryExactlyOne
-            |> Option.filter (fun c -> List.contains userId c.MemberIds)
+            |> Option.filter (fun c -> not (List.contains userId c.MemberIds))
             |> Option.filter (fun c -> requests.findMany <@ fun req -> req.ClubId = clubId && req.UserId = userId @> |> Seq.isEmpty)
             |> Option.map (fun c ->
                 let request: ClubJoinRequest = {

@@ -19,7 +19,7 @@ let auth0Config: AuthConfig = {
     allowedConnections = [|"Username-Password-Authentication"|]
     autoclose = true
     auth = {
-        redirect = true
+        redirect = false
         redirectUrl = "http://localhost:8080"
         responseType = "token"
     }
@@ -129,7 +129,7 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | UserRegistered user ->
         let routeCmd =
             model.Route
-                |> Option.bind (fun route -> Routes.getDataForRoute Server.api model.User.Value.sub route)
+                |> Option.bind (fun route -> Routes.getDataForRoute Server.api user.Sub route)
                 |> Option.map (Utils.mapAsync RouteCmd)
                 |> (function | Some asyn -> Cmd.OfAsync.result asyn | None -> Cmd.none)
         model, routeCmd

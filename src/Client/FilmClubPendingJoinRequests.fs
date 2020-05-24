@@ -9,33 +9,38 @@ open Fulma
 open Routes
 open Utils
 
+type RequestNameModel = {
+    Request: ClubJoinRequest
+    UserName: string
+}
+
 type private Msg =
-    | RequestsLoaded of ClubJoinRequest list
+    | RequestsLoaded of RequestNameModel list
     | AllowRequest of ClubJoinRequest
     | RequestAllowed of ClubJoinRequest
     | DenyRequest of ClubJoinRequest
     | RequestDenied of ClubJoinRequest
 
 type private Model = {
-    Requests: ClubJoinRequest list option
+    Requests: RequestNameModel list option
 }
 
 let private init : Model =
     { Requests = None }
 
-let private renderRequest (dispatch: Msg -> unit) (request: ClubJoinRequest) =
+let private renderRequest (dispatch: Msg -> unit) (request: RequestNameModel) =
     Card.card [ ] [
         Card.header [ ] [
             Card.Header.title [ ] [
                 str "Join club request" ] ]
         Card.content [ ] [
             Content.content [ ] [
-                p [] [ str ("User: " + request.UserId) ]
-                getRequestStatusText request.RequestStatus ] ]
+                p [] [ str ("User: " + request.UserName) ]
+                getRequestStatusText request.Request.RequestStatus ] ]
         Card.footer [ ] [
-            Card.Footer.a [ GenericOption.Props [ Props.OnClick (fun e -> (dispatch << AllowRequest) request) ] ] [
+            Card.Footer.a [ GenericOption.Props [ Props.OnClick (fun e -> (dispatch << AllowRequest) request.Request) ] ] [
                 str "Allow" ]
-            Card.Footer.a [ GenericOption.Props [ Props.OnClick (fun e -> (dispatch << DenyRequest) request) ] ] [
+            Card.Footer.a [ GenericOption.Props [ Props.OnClick (fun e -> (dispatch << DenyRequest) request.Request) ] ] [
                 str "Deny" ] ] ]
 
 let private view (model : Model) (dispatch : Msg -> unit) =
@@ -46,8 +51,8 @@ let private view (model : Model) (dispatch : Msg -> unit) =
         Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left) ] ] [
             yield! (List.map (renderRequest dispatch) requests) ]
 
-let replaceRequest request requests =
-    requests |> List.map (fun req -> match req.Id = request.Id with |true -> request |false -> req)
+let replaceRequest request (requests: RequestNameModel list) =
+    requests |> List.map (fun req -> match req.Request.Id = request.Id with |true -> {req with Request = request} |false -> req)
 
 let private update (model : Model) (msg : Msg) : Model =
     match msg with
@@ -72,7 +77,13 @@ let denyRequest (api: IFilmClubApi) (requestId: int) =
 let private stream (club: Club) (api: IFilmClubApi) (model: Model) msgs =
     match model.Requests with
     | None ->
-        api.GetJoinClubRequestsForClub club.Id
+        async {
+            let! reqs = api.GetJoinClubRequestsForClub club.Id
+            let ids = reqs |> List.map (fun req -> req.UserId)
+            let! users = api.GetUsers ids
+            let userMap = users |> List.map (fun x -> x.Sub, x.Name) |> Map.ofList
+            return reqs |> List.map (fun req -> { Request = req; UserName = Map.find req.UserId userMap })
+        }
             |> AsyncRx.ofAsync
             |> AsyncRx.map RequestsLoaded
             |> AsyncRx.tag "loadRequests"
