@@ -107,6 +107,7 @@ let getFilmApi (database: LiteDatabase) = {
        return clubs.findMany <@ fun clubx -> clubx.Id = club.Id @>
             |> Seq.tryExactlyOne
             |> Option.filter (fun c -> c.OwnerId = userId && club.OwnerId = userId)
+            |> Option.map (fun c -> { club with Id = c.Id })
             |> Option.filter clubs.Update
             |> Option.map Valid
             |> Option.defaultValue Invalid
