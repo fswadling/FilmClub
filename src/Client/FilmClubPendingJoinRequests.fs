@@ -30,7 +30,7 @@ let private renderRequest (dispatch: Msg -> unit) (request: ClubJoinRequest) =
                 str "Join club request" ] ]
         Card.content [ ] [
             Content.content [ ] [
-                p [] [ str ("User: " + request.UserName) ]
+                p [] [ str ("User: " + request.UserId) ]
                 getRequestStatusText request.RequestStatus ] ]
         Card.footer [ ] [
             Card.Footer.a [ GenericOption.Props [ Props.OnClick (fun e -> (dispatch << AllowRequest) request) ] ] [
