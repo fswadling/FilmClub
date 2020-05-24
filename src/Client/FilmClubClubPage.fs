@@ -5,6 +5,8 @@ open Fable.Reaction
 open Shared
 open Auth0
 open FSharp.Control
+open Fable.React.Props
+
 open Fulma
 open Routes
 
@@ -29,14 +31,43 @@ let private clickAddFilm (dispatchRoute: Route -> unit) (model: Model) =
         |> Option.map (fun club -> (dispatchRoute ((ClubRoute << (createClubRouteType ClubSubRoute.ClubAddNewFilm) << ActualObject) club)))
         |> ignore
 
+let private renderFilm (dispatchRoute: Route -> unit) (film: Film) =
+    button [ ClassName "my-card" ] [
+        img [ Class "card-image"; Src film.Image.Image ]
+        div [ ClassName "card-title" ] [
+            str film.Name ] ]
+
+let private renderFilms (dispatchRoute: Route -> unit) films =
+    let cards = Seq.map (renderFilm dispatchRoute) films
+    div [ ClassName "card-list" ] cards
+
+let renderFilmSection (dispatchRoute: Route -> unit) (optFilms: Film list option) =
+    match optFilms with
+    | Some films ->
+        match films with
+        | [] ->
+            Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
+            Content.content [ ] [
+                Text.p [] [ str "Please add a film to start this club!" ] ] ]
+        | _ -> renderFilms dispatchRoute films
+    | None ->
+        Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
+            Content.content [ ] [
+                Text.p [] [ str "Films loading..." ] ] ]
+
 let private view (dispatchRoute: Route -> unit) (model : Model) (dispatch : Msg -> unit) =
     match model.ClubModel with
     | None -> Utils.LoadingPage "Loading club..."
     | Some x -> Content.content [ ] [
-            h1 [] [ str x.Club.Name ]
+            br []
             Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
                 Content.content [ ] [
-                    Button.button [ Button.CustomClass "home-btn"; Button.OnClick (fun _ -> clickAddFilm dispatchRoute model) ] [ str "Add new film" ] ] ] ]
+                    h1 [] [ str x.Club.Name ] ] ]
+            Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
+                Content.content [ ] [
+                    Button.button [ Button.CustomClass "home-btn"; Button.OnClick (fun _ -> clickAddFilm dispatchRoute model) ] [ str "Add new film" ] ] ]
+            renderFilmSection dispatchRoute x.Films
+            ]
 
 let private updateClubModel (currentModel : ClubModel) (msg : Msg) : ClubModel =
     match msg with
