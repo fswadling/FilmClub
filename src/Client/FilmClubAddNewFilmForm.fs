@@ -13,10 +13,17 @@ open Thoth.Elmish.FormBuilder.BasicFields
 open Thoth.Json
 open Routes
 
+type FilmFormArgs =  {
+    Name: string
+    Image: ImageType
+    Description: string
+}
+
 type private FormState =
     {
         Name: string
         Image: ImageType option
+        Description: string
     }
 
     static member Decoder : Decoder<FormState> =
@@ -24,6 +31,7 @@ type private FormState =
             (fun get -> {
                 Name = get.Required.Field "name" Decode.string
                 Image = get.Required.Field "image" CustomFields.ImageInput.decoder
+                Description = get.Required.Field "description" Decode.string
                 })
 
 type private MyMsg =
@@ -35,7 +43,7 @@ type private Model = {
    FormConfig: FormBuilder.Types.Config<MyMsg>
 }
 
-let private initForm name image =
+let private initForm name image description =
     Form<MyMsg>
         .Create(OnFormMsg)
         .AddField(
@@ -56,10 +64,18 @@ let private initForm name image =
                 .IsRequired()
                 .WithDefaultView()
         )
+        .AddField(
+            BasicTextarea
+                .Create("description")
+                .WithLabel("Description")
+                .WithPlaceholder("Enter a description for the film")
+                .WithValue(description)
+                .WithDefaultView()
+        )
         .Build()
 
-let private init name image =
-    let (formState, formConfig) = initForm name image
+let private init name image description =
+    let (formState, formConfig) = initForm name image description
     let (formState, formCmds) = Form.init formConfig formState
     { FormState = formState; FormConfig = formConfig }
 
@@ -69,7 +85,14 @@ let private getFrmState (json:string): FormState option =
     | Ok frmState -> Some frmState
     | _ -> None
 
-let private update (save: string -> ImageType -> unit) (model : Model) (msg : MyMsg) : Model =
+let private getFormArgs (state: FormState): FilmFormArgs option =
+    state.Image
+        |> Option.map (fun img -> {
+            Name = state.Name
+            Image = img
+            Description = state.Description})
+
+let private update (save: FilmFormArgs -> unit) (model : Model) (msg : MyMsg) : Model =
     match msg with
     | OnFormMsg msg ->
         let (formState, formCmd) = Form.update model.FormConfig msg model.FormState
@@ -78,8 +101,8 @@ let private update (save: string -> ImageType -> unit) (model : Model) (msg : My
         let json = Form.toJson model.FormConfig model.FormState
         let formState = getFrmState json
         formState
-            |> Option.bind (fun state -> state.Image |> Option.map (fun image -> state.Name, image))
-            |> Option.map (fun (name, image) -> save name image)
+            |> Option.bind getFormArgs
+            |> Option.map save
             |> ignore
         model
 
@@ -108,6 +131,6 @@ let private view (header: string) (saveBtnText: string) (model : Model) (dispatc
                     Loader = Form.DefaultLoader } ]
             Button.button [ Button.Disabled (not (getIsValid model)); Button.OnClick (fun _ -> dispatch SaveFilm) ] [ str saveBtnText ] ] ]
 
-let Component (title: string) (saveBtnText: string) name image (save: string -> ImageType -> unit) =
-    let model = init name image
+let Component (title: string) (saveBtnText: string) name image description (save: FilmFormArgs -> unit) =
+    let model = init name image description
     Reaction.StreamComponent model (view title saveBtnText) (update save) stream

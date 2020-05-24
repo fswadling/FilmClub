@@ -47,7 +47,7 @@ let private update (dispatchRoute: Route -> unit) (model : Model) (msg : MyMsg) 
         { model with Requests = Some requests }
 
 let private makeCall (api: IFilmClubApi) (args: JoinClubArgs) =
-    AsyncRx.ofAsync (api.RequestJoinClub args.UserId args.UserName args.ClubId)
+    AsyncRx.ofAsync (api.RequestJoinClub args.UserId args.ClubId)
 
 let private stream (api: IFilmClubApi) (user: IAuth0UserProfile) (model: Model) (msgs: IAsyncObservable<MyMsg>) =
     match model.Requests with

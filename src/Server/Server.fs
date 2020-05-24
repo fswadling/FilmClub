@@ -29,18 +29,33 @@ let port =
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
 let getFilmApi (database: LiteDatabase) = {
+   UpdateUser = fun (sub: string) (name: string) -> async {
+       let users = database.GetCollection<User>("users")
+       let user: User = {
+           Id = 0
+           Name = name
+           Sub = sub
+       }
+       users.Upsert user |> ignore
+       return user
+   }
+   GetUsers = fun (subs: string list) -> async {
+       let users = database.GetCollection<User>("users")
+       return users.findMany <@ fun user -> List.contains user.Sub subs @> |> Seq.toList
+   }
    GetFilms = fun (clubId: int) -> async {
        let films = database.GetCollection<Film>("films")
        let clubFilms = films.findMany <@ fun film -> film.ClubId = clubId @> |> Seq.toList
        return clubFilms
    }
-   AddNewFilm = fun (filmName: string) (image: ImageType) (clubId: int) (userId: string) -> async {
+   AddNewFilm = fun (filmName: string) (image: ImageType) (description: string) (clubId: int) (userId: string) -> async {
        let film: Film = {
            Id = 0
            ClubId = clubId
            UserId = userId
            Name = filmName
            Image = image
+           Description = description
        }
        let films = database.GetCollection<Film>("films")
        films.Insert(film) |> ignore
@@ -89,7 +104,7 @@ let getFilmApi (database: LiteDatabase) = {
             |> Option.map Valid
             |> Option.defaultValue Invalid
    }
-   RequestJoinClub = fun (userId: string) (userName: string) (clubId: int) -> async {
+   RequestJoinClub = fun (userId: string) (clubId: int) -> async {
        let requests = database.GetCollection<ClubJoinRequest>("clubJoinRequests")
        let clubs = database.GetCollection<Club>("clubs")
        return clubs.findMany <@ fun clubx -> clubx.Id = clubId @>
@@ -100,7 +115,6 @@ let getFilmApi (database: LiteDatabase) = {
                 let request: ClubJoinRequest = {
                     Id = 0
                     UserId = userId
-                    UserName = userName
                     ClubId = clubId
                     RequestStatus = ClubJoinRequestStatus.Pending
                 }

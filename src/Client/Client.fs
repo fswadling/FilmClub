@@ -43,6 +43,7 @@ type Msg =
     | Logout
     | Authenticated of IAuthResult
     | UserProfileLoaded of IAuth0UserProfile
+    | UserRegistered of User
     | RouteCmd of Route
 
 let lock = Auth0Lock.CreateWithConfig auth0Credentials
@@ -120,12 +121,18 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | Authenticated authResult ->
         model, Cmd.ofSub (getUserInfo authResult)
     | UserProfileLoaded userProfile ->
+        let userCmd =
+            Server.api.UpdateUser userProfile.sub userProfile.name
+                |> Utils.mapAsync UserRegistered
+                |> Cmd.OfAsync.result
+        { model with User = Some userProfile }, userCmd
+    | UserRegistered user ->
         let routeCmd =
             model.Route
-                |> Option.bind (fun route -> Routes.getDataForRoute Server.api userProfile.sub route)
+                |> Option.bind (fun route -> Routes.getDataForRoute Server.api model.User.Value.sub route)
                 |> Option.map (Utils.mapAsync RouteCmd)
                 |> (function | Some asyn -> Cmd.OfAsync.result asyn | None -> Cmd.none)
-        { model with User = Some userProfile }, routeCmd
+        model, routeCmd
     | RouteCmd route ->
         model.User
             |> Option.bind (fun user -> Routes.getDataForRoute Server.api user.sub route)

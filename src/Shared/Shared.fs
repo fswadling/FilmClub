@@ -6,12 +6,20 @@ type ImageType = {
 }
 
 [<CLIMutable>]
+type User = {
+    Id: int
+    Name: string
+    Sub: string
+}
+
+[<CLIMutable>]
 type Film = {
     Id: int
     ClubId: int
     UserId: string
     Image: ImageType
     Name: string
+    Description: string
 }
 
 [<CLIMutable>]
@@ -32,7 +40,6 @@ type ClubJoinRequestStatus =
 type ClubJoinRequest = {
     Id: int
     UserId: string
-    UserName: string
     ClubId: int
     RequestStatus: ClubJoinRequestStatus
 }
@@ -49,14 +56,16 @@ type Response<'a> =
 /// A type that specifies the communication protocol between client and server
 /// to learn more, read the docs at https://zaid-ajaj.github.io/Fable.Remoting/src/basics.html
 type IFilmClubApi = {
+    UpdateUser: string -> string -> Async<User>
+    GetUsers: string list -> Async<User list>
     GetFilms: int -> Async<Film list>
-    AddNewFilm: string -> ImageType -> int -> string -> Async<Film>
+    AddNewFilm: string -> ImageType -> string -> int -> string -> Async<Film>
     UpdateFilm: string -> Film -> Async<Response<Film>>
     GetClubsForUser: string -> Async<Club list>
     GetClubById: string -> int -> Async<Response<Club>>
     SaveNewClub: string -> ImageType -> string -> Async<Club>
     UpdateClub: string -> Club -> Async<Response<Club>>
-    RequestJoinClub: string -> string -> int -> Async<Response<ClubJoinRequest>>
+    RequestJoinClub: string -> int -> Async<Response<ClubJoinRequest>>
     GetJoinClubRequestsForUser: string -> Async<ClubJoinRequest list>
     GetJoinClubRequestsForClub: int -> Async<ClubJoinRequest list>
     AllowRequest: int -> Async<Response<ClubJoinRequest>>
