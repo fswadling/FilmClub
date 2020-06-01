@@ -121,12 +121,7 @@ let getDataForRoute (api: IFilmClubApi) (userId: string) (route: Route) =
                         response
                             |> Utils.mapAsync (mapFilmResponseToRoute club)
                             |> Some
-                | route ->
-                    let x = async {
-                        let clubEntity = ActualObject club
-                        return ClubRoute { EntityOrId = clubEntity; SubRoute = route}
-                    }
-                    Some x
+                | route -> None
 
             | false -> Some (async { return NotAllowed })
         | OnlyId id ->

@@ -31,17 +31,17 @@ let private clickAddFilm (dispatchRoute: Route -> unit) (model: Model) =
         |> Option.map (fun club -> (dispatchRoute ((ClubRoute << (createClubRouteType ClubSubRoute.ClubAddNewFilm) << ActualObject) club)))
         |> ignore
 
-let private renderFilm (dispatchRoute: Route -> unit) (film: Film) =
-    button [ ClassName "my-card" ] [
+let private renderFilm (dispatchRoute: Route -> unit) (club: Club) (film: Film) =
+    button [ ClassName "my-card"; OnClick (fun e -> dispatchRoute ((ClubRoute << (createClubRouteType ((ClubSubRoute.ClubFilmPage << ActualObject) film)) << ActualObject) club) |> ignore) ] [
         img [ Class "card-image"; Src film.Image.Image ]
         div [ ClassName "card-title" ] [
             str film.Name ] ]
 
-let private renderFilms (dispatchRoute: Route -> unit) films =
-    let cards = Seq.map (renderFilm dispatchRoute) films
+let private renderFilms (dispatchRoute: Route -> unit) club films =
+    let cards = Seq.map (renderFilm dispatchRoute club) films
     div [ ClassName "card-list" ] cards
 
-let renderFilmSection (dispatchRoute: Route -> unit) (optFilms: Film list option) =
+let renderFilmSection (dispatchRoute: Route -> unit) (club: Club) (optFilms: Film list option) =
     match optFilms with
     | Some films ->
         match films with
@@ -49,7 +49,7 @@ let renderFilmSection (dispatchRoute: Route -> unit) (optFilms: Film list option
             Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
             Content.content [ ] [
                 Text.p [] [ str "Please add a film to start this club!" ] ] ]
-        | _ -> renderFilms dispatchRoute films
+        | _ -> renderFilms dispatchRoute club films
     | None ->
         Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
             Content.content [ ] [
@@ -66,7 +66,7 @@ let private view (dispatchRoute: Route -> unit) (model : Model) (dispatch : Msg 
             Container.container [ Container.IsFluid; Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [
                 Content.content [ ] [
                     Button.button [ Button.CustomClass "home-btn"; Button.OnClick (fun _ -> clickAddFilm dispatchRoute model) ] [ str "Add new film" ] ] ]
-            renderFilmSection dispatchRoute x.Films
+            renderFilmSection dispatchRoute x.Club x.Films
             ]
 
 let private updateClubModel (currentModel : ClubModel) (msg : Msg) : ClubModel =

@@ -82,7 +82,7 @@ let getFilmApi (database: LiteDatabase) = {
             |> Seq.tryExactlyOne
             |> Option.filter (fun f -> f.UserId = userId && film.UserId = userId)
             |> Option.filter (fun _ -> films.Update film)
-            |> Option.map Valid
+            |> Option.map (fun f -> Valid film)
             |> Option.defaultValue Invalid
    }
    GetClubById = fun (userId: string) (clubId: int) -> async {

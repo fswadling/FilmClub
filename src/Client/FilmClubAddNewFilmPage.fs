@@ -41,7 +41,7 @@ let private stream (api: IFilmClubApi) (clubId: int) (user: IAuth0UserProfile) (
     let newClubs =
         msgs
         |> AsyncRx.choose (function | SaveFilm clubArgs -> Some clubArgs | _ -> None)
-        |> AsyncRx.flatMapLatest (fun args -> makeCall api clubId user.sub args)
+        |> AsyncRx.flatMapLatest (makeCall api clubId user.sub)
         |> AsyncRx.map FilmSaved
 
     newClubs
