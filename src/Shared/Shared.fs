@@ -59,6 +59,7 @@ type IFilmClubApi = {
     UpdateUser: string -> string -> Async<User>
     GetUsers: string list -> Async<User list>
     GetFilms: int -> Async<Film list>
+    GetFilm: string -> int -> Async<Response<Film>>
     AddNewFilm: string -> ImageType -> string -> int -> string -> Async<Film>
     UpdateFilm: string -> Film -> Async<Response<Film>>
     GetClubsForUser: string -> Async<Club list>

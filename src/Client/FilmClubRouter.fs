@@ -22,6 +22,12 @@ let renderRouteTarget (api: IFilmClubApi) (dispatchRoute: Route -> unit) (route:
             optClub
                 |> Option.map (fun c -> FilmClubAddNewFilmPage.Component c api dispatchRoute user ())
                 |> Option.defaultValue (Utils.LoadingPage "Loading Club...")
+        | ClubFilmPage filmRet ->
+            let optFilm = filmRet |> toOption
+            optClub
+                |> Option.bind (fun c -> optFilm |> Option.map (fun f -> c, f))
+                |> Option.map (fun (club, film) -> FilmClubFilmPage.Component film api dispatchRoute user ())
+                |> Option.defaultValue (Utils.LoadingPage "Loading Film...")
     | Some NotAllowed -> Utils.MessagePage "Not allowed"
     | _ -> div [] [ Fable.React.Helpers.str "No route" ]
 

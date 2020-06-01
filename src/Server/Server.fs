@@ -33,18 +33,18 @@ let getFilmApi (database: LiteDatabase) = {
        let users = database.GetCollection<User>("users")
        let userOpt = users.findMany <@ fun user -> user.Sub = sub @> |> Seq.tryExactlyOne
        return match userOpt with
-            | Some user ->
-                let updatedUser = { user with Name = name }
-                users.Update updatedUser |> ignore
-                updatedUser
-            | None ->
-                let user: User = {
-                    Id = 0
-                    Name = name
-                    Sub = sub
-                }
-                users.Insert user |> ignore
-                user
+                | Some user ->
+                    let updatedUser = { user with Name = name }
+                    users.Update updatedUser |> ignore
+                    updatedUser
+                | None ->
+                    let user: User = {
+                        Id = 0
+                        Name = name
+                        Sub = sub
+                    }
+                    users.Insert user |> ignore
+                    user
    }
    GetUsers = fun (subs: string list) -> async {
        let users = database.GetCollection<User>("users")
@@ -68,12 +68,20 @@ let getFilmApi (database: LiteDatabase) = {
        films.Insert(film) |> ignore
        return film
    }
+   GetFilm = fun (userId: string) (filmId: int) -> async {
+        let films = database.GetCollection<Film>("films")
+        return films.findMany <@ fun x -> x.Id = filmId @>
+            |> Seq.tryExactlyOne
+            |> Option.filter (fun f -> f.UserId = userId)
+            |> Option.map Valid
+            |> Option.defaultValue Invalid
+   }
    UpdateFilm = fun (userId: string) (film: Film) -> async {
        let films = database.GetCollection<Film>("films")
        return films.findMany <@ fun x -> x.Id = film.Id @>
             |> Seq.tryExactlyOne
             |> Option.filter (fun f -> f.UserId = userId && film.UserId = userId)
-            |> Option.filter films.Update
+            |> Option.filter (fun _ -> films.Update film)
             |> Option.map Valid
             |> Option.defaultValue Invalid
    }

@@ -18,6 +18,7 @@ type ClubSubRoute =
     | ClubMain
     | ClubAdmin
     | ClubAddNewFilm
+    | ClubFilmPage of EntityOrId<Film>
 
 type ClubRouteType = {
     EntityOrId: EntityOrId<Club>
@@ -36,15 +37,23 @@ let createClubRouteType subRoute entityOrId: ClubRouteType = {
     SubRoute = subRoute
 }
 
+let createClubFilmRouteType clubId filmId =
+    let filmRouteVar = (ClubFilmPage << OnlyId) filmId
+    let x = createClubRouteType filmRouteVar (OnlyId clubId)
+    ClubRoute x
+
+let curry f x y = f (x,y)
+
 let router: Parser<Route -> Route, _> =
     oneOf
         [ Elmish.UrlParser.map Home (s "home")
           Elmish.UrlParser.map NotAllowed (s "not-allowed")
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubAdmin) << OnlyId) (s "club" </> i32 </> s "admin")
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubAddNewFilm) << OnlyId) (s "club"</> i32 </> s "add-film")
+          Elmish.UrlParser.map createClubFilmRouteType (s "club" </> i32 </> s "film" </> i32)
           Elmish.UrlParser.map (ClubRoute << (createClubRouteType ClubMain) << OnlyId) (s "club" </> i32)
           Elmish.UrlParser.map NewClub (s "new-club")
-          Elmish.UrlParser.map JoinClub (s "join-club")]
+          Elmish.UrlParser.map JoinClub (s "join-club") ]
 
 let getIdString<'a> (getId: 'a -> int) (routeVar: EntityOrId<'a>) =
     match routeVar with
@@ -56,6 +65,7 @@ let toClubPath clubSubRoute =
     | ClubMain -> ""
     | ClubAdmin -> "/admin"
     | ClubAddNewFilm -> "/add-film"
+    | ClubFilmPage routeVar -> "/film/" + (getIdString<Film> (fun film -> film.Id) routeVar)
 
 let toPath route =
     match route with
@@ -86,13 +96,38 @@ let mapClubResponseToRoute (subRoute: ClubSubRoute) (response: Response<Club>) =
         ClubRoute (createClubRouteType subRoute entity)
     | Invalid -> NotAllowed
 
+let mapFilmResponseToRoute (club: Club) (response: Response<Film>) =
+    match response with
+    | Valid film ->
+        let filmEntity = ActualObject film
+        let subRoute = ClubFilmPage filmEntity
+        let clubEntity = ActualObject club
+        ClubRoute { EntityOrId = clubEntity; SubRoute = subRoute }
+    | Invalid -> NotAllowed
+
 let getDataForRoute (api: IFilmClubApi) (userId: string) (route: Route) =
     match route with
     | ClubRoute clubRouteType ->
         match clubRouteType.EntityOrId with
         | ActualObject club ->
             match (List.contains userId club.MemberIds) with
-            | true -> None
+            | true ->
+                match clubRouteType.SubRoute with
+                | ClubFilmPage filmRouteType ->
+                    match filmRouteType with
+                    | ActualObject film -> None
+                    | OnlyId filmId ->
+                        let response = api.GetFilm userId filmId
+                        response
+                            |> Utils.mapAsync (mapFilmResponseToRoute club)
+                            |> Some
+                | route ->
+                    let x = async {
+                        let clubEntity = ActualObject club
+                        return ClubRoute { EntityOrId = clubEntity; SubRoute = route}
+                    }
+                    Some x
+
             | false -> Some (async { return NotAllowed })
         | OnlyId id ->
             let response = api.GetClubById userId id
